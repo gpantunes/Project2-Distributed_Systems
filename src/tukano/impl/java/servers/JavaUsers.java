@@ -26,6 +26,8 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<String> createUser(User user) {
+		Log.info("############### " + user.getUserId() + " " + user.getPwd());
+
 		if (badUser(user))
 			return error(BAD_REQUEST);
 
@@ -40,6 +42,8 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> getUser(String userId, String pwd) {
+		Log.info("############### " + userId + " " + pwd);
+
 		if (badParam(userId))
 			return error(BAD_REQUEST);
 
@@ -60,6 +64,8 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> updateUser(String userId, String pwd, User user) {
+		Log.info("############### " + userId + " " + pwd + " " + user.getUserId());
+
 		if (badParam(userId) || user.getUserId() != null)
 			return error(BAD_REQUEST);
 

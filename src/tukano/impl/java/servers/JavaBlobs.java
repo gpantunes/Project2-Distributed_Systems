@@ -14,30 +14,76 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import tukano.api.Blob;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.java.clients.Clients;
-import utils.Args;
-import utils.Hash;
-import utils.Hex;
-import utils.IO;
-import utils.Token;
+import utils.*;
 
 public class JavaBlobs implements ExtendedBlobs {
 	private static final String ADMIN_TOKEN = Args.valueOf("-token", "");
 	
-	private static final String BLOBS_ROOT_DIR = "/tmp/blobs/";
+	private static final String BLOBS_ROOT_DIR = "/blobFiles/";
 	
 	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
 	private static final int CHUNK_SIZE = 4096;
 
 	@Override
+	public Result<Void> upload(String blobId, byte[] bytes) {
+		String filePath = "blobFiles/" + blobId;
+		String directoryPath = "blobFiles/";
+
+		try {
+			Path directory = Paths.get(directoryPath);
+			if (!Files.exists(directory))
+				Files.createDirectories(directory);
+
+			// Convert byte array to Path object
+			Path path = Paths.get(filePath);
+
+			// Write the bytes to the file
+			Files.write(path, bytes);
+
+		} catch (IOException e) {
+			return Result.error(INTERNAL_ERROR);
+		}
+
+		Hibernate.getInstance().persistOne(new Blob(blobId, blobId));
+
+		return Result.ok();
+	}
+
+	@Override
+	public Result<byte[]> download(String blobId) {
+
+		var blobList = Hibernate.getInstance().sql("SELECT * FROM Blob WHERE blobId = '"
+				+ blobId + "'", Blob.class);
+
+		Blob blob = blobList.get(0);
+		byte[] content;
+
+		try{
+			String filePath = "blobFiles/" + blobId;
+			Path path = Paths.get(filePath);
+
+			content = Files.readAllBytes(path);
+		}catch (IOException e){
+			return Result.error(INTERNAL_ERROR);
+		}
+
+
+		return Result.ok(content);
+	}
+
+
+	/*@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
 		Log.info(() -> format("upload : blobId = %s, sha256 = %s\n", blobId, Hex.of(Hash.sha256(bytes))));
 
@@ -71,7 +117,7 @@ public class JavaBlobs implements ExtendedBlobs {
 			return ok(IO.read(file));
 		else
 			return error(NOT_FOUND);
-	}
+	}*/
 
 	@Override
 	public Result<Void> downloadToSink(String blobId, Consumer<byte[]> sink) {

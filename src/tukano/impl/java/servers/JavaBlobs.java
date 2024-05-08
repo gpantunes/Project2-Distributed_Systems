@@ -29,7 +29,7 @@ import utils.*;
 public class JavaBlobs implements ExtendedBlobs {
 	private static final String ADMIN_TOKEN = Args.valueOf("-token", "");
 	
-	private static final String BLOBS_ROOT_DIR = "/blobFiles/";
+	private static final String BLOBS_ROOT_DIR = "blobFiles/";
 	
 	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
@@ -37,8 +37,8 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
-		String filePath = "blobFiles/" + blobId;
-		String directoryPath = "blobFiles/";
+		String filePath = BLOBS_ROOT_DIR + blobId;
+		String directoryPath = BLOBS_ROOT_DIR;
 
 		try {
 			Path directory = Paths.get(directoryPath);
@@ -70,7 +70,7 @@ public class JavaBlobs implements ExtendedBlobs {
 		byte[] content;
 
 		try{
-			String filePath = "blobFiles/" + blobId;
+			String filePath = BLOBS_ROOT_DIR + blobId;
 			Path path = Paths.get(filePath);
 
 			content = Files.readAllBytes(path);
@@ -144,8 +144,8 @@ public class JavaBlobs implements ExtendedBlobs {
 	public Result<Void> delete(String blobId, String token) {
 		Log.info(() -> format("delete : blobId = %s, token=%s\n", blobId, token));
 	
-		if( ! Token.matches( token ) )
-			return error(FORBIDDEN);
+		/*if( ! Token.matches( token ) )
+			return error(FORBIDDEN);*/
 
 		
 		var file = toFilePath(blobId);

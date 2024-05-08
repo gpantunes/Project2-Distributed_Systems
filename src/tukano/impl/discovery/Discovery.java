@@ -42,7 +42,7 @@ public interface Discovery {
 
 	void addBlobUris(URI[] uris);
 
-	void updateBlobDistribution(URI serverUri);
+	void updateBlobDistribution(URI serverUri, int value);
 
 	URI getNextServer() throws URISyntaxException;
 }
@@ -156,10 +156,10 @@ class DiscoveryImpl implements Discovery {
 	}
 
 	@Override
-	public void updateBlobDistribution(URI serverUri){
+	public void updateBlobDistribution(URI serverUri, int value){
 		int totalBlobs = blobDistribution.remove(serverUri);
 
-		blobDistribution.put(serverUri, totalBlobs + 1);
+		blobDistribution.put(serverUri, totalBlobs + value);
 	}
 
 	@Override

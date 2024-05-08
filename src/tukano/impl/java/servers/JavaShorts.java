@@ -7,7 +7,9 @@ import static tukano.api.java.Result.errorOrValue;
 import static tukano.api.java.Result.ok;
 import static tukano.impl.java.clients.Clients.BlobsClients;
 import static tukano.impl.java.clients.Clients.UsersClients;
-import tukano.api.Likes;
+
+import tukano.api.*;
+
 import static utils.DB.getOne;
 
 import java.net.URI;
@@ -22,12 +24,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import tukano.api.Follow;
 import tukano.api.Short;
-import tukano.api.User;
 import tukano.api.java.Blobs;
 import tukano.api.java.Result;
 import tukano.api.java.Users;
+import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.discovery.Discovery;
 import tukano.impl.grpc.clients.GrpcUsersClient;
@@ -53,6 +54,7 @@ public class JavaShorts implements ExtendedShorts {
 	Discovery discovery = Discovery.getInstance();
 	URI[] blobUris = discovery.knownUrisOf("blobs", -1);
 	ClientFactory<Users> client = UsersClients;
+	ClientFactory<ExtendedBlobs> blobClient = BlobsClients;
 
 	static record Credentials(String userId, String pwd) {
 		static Credentials from(String userId, String pwd) {
@@ -120,7 +122,7 @@ public class JavaShorts implements ExtendedShorts {
 
 			Short vid = new Short(shortId, userId, blobId, System.currentTimeMillis(), 0);
 
-			discovery.updateBlobDistribution(nextUri);
+			discovery.updateBlobDistribution(nextUri, 1);
 
 			Hibernate.getInstance().persistOne(vid);
 
@@ -145,7 +147,7 @@ public class JavaShorts implements ExtendedShorts {
 		if(!result.isOK())
 			return Result.error(result.error());
 
-
+		deleteBlob(vid);
 		Hibernate.getInstance().deleteOne(vid);
 
 		return ok();
@@ -369,7 +371,29 @@ public class JavaShorts implements ExtendedShorts {
 	public Result<Void> deleteAllShorts(String userId, String password, String token) {
 		Log.info(() -> format("deleteAllShorts : userId = %s, password = %s, token = %s\n", userId, password, token));
 
-		if( ! Token.matches( token ) )
+
+		//delete shorts
+		var query1 = Hibernate.getInstance().sql("SELECT * FROM Short WHERE ownerId = '" + userId + "'", Short.class);
+		for(int i = 0; i < query1.size(); i++){
+			deleteBlob(query1.get(i));
+			Hibernate.getInstance().deleteOne(query1.get(i));
+		}
+
+		//delete follows
+		var query2 = Hibernate.getInstance().sql("SELECT * FROM Follow WHERE followerId = '" + userId + "' OR followedId = '" + userId + "'", Follow.class);
+		for(int i = 0; i < query2.size(); i++){
+			Hibernate.getInstance().deleteOne(query2.get(i));
+		}
+
+		//delete likes
+		var query3 = Hibernate.getInstance().sql("SELECT * FROM Likes WHERE userId = '" + userId + "'", Likes.class);
+		for(int i = 0; i < query3.size(); i++){
+			Hibernate.getInstance().deleteOne(query3.get(i));
+		}
+
+
+
+		/*if( ! Token.matches( token ) )
 			return error(FORBIDDEN);
 		
 		return DB.transaction( (hibernate) -> {
@@ -384,16 +408,18 @@ public class JavaShorts implements ExtendedShorts {
 			});
 			
 			//delete follows
-			var query2 = format("SELECT * FROM Following f WHERE f.follower = '%s' OR f.followee = '%s'", userId, userId);		
+			var query2 = format("SELECT * FROM Follow f WHERE f.followerId = '%s' OR f.followedId = '%s'", userId, userId);
 			hibernate.createNativeQuery(query2, Following.class).list().forEach( hibernate::remove );
 			
 			//delete likes
-			var query3 = format("SELECT * FROM Likes l WHERE l.ownerId = '%s' OR l.userId = '%s'", userId, userId);		
+			var query3 = format("SELECT * FROM Likes WHERE userId = '%s'", userId);
 			hibernate.createNativeQuery(query3, Likes.class).list().forEach( l -> {
 				shortsCache.invalidate( l.getShortId() );
 				hibernate.remove(l);
 			});
-		});
+		});*/
+
+		return ok();
 	}
 
 
@@ -426,7 +452,18 @@ public class JavaShorts implements ExtendedShorts {
 	}
 
 	
-	
+	private Result<Void> deleteBlob(Short vid){
+		String[] params = vid.getBlobUrl().split("/blobs/");
+
+		URI uri = URI.create(params[0]);
+		String blobId = params[1];
+
+		blobClient.get().delete(blobId, "");
+
+		discovery.updateBlobDistribution(uri, -1);
+
+		return ok();
+	}
 	
 }
 

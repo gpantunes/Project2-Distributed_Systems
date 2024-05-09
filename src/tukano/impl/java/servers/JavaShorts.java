@@ -25,20 +25,14 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import tukano.api.Short;
-import tukano.api.java.Blobs;
 import tukano.api.java.Result;
 import tukano.api.java.Users;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.discovery.Discovery;
-import tukano.impl.grpc.clients.GrpcUsersClient;
 import tukano.impl.java.clients.ClientFactory;
-import tukano.impl.java.clients.Clients;
-import tukano.impl.java.servers.data.Following;
-import tukano.impl.rest.clients.RestUsersClient;
 import utils.DB;
 import utils.Hibernate;
-import utils.Token;
 
 public class JavaShorts implements ExtendedShorts {
 	private static final String BLOB_COUNT = "*";
@@ -52,7 +46,7 @@ public class JavaShorts implements ExtendedShorts {
 	private static final long BLOBS_USAGE_CACHE_EXPIRATION = 10000;
 
 	Discovery discovery = Discovery.getInstance();
-	URI[] blobUris = discovery.knownUrisOf("blobs", -1);
+	URI[] blobUris = discovery.knownUrisOf("blobs", 1);
 	ClientFactory<Users> client = UsersClients;
 	ClientFactory<ExtendedBlobs> blobClient = BlobsClients;
 
@@ -147,7 +141,6 @@ public class JavaShorts implements ExtendedShorts {
 		if(!result.isOK())
 			return Result.error(result.error());
 
-		deleteBlob(vid);
 		Hibernate.getInstance().deleteOne(vid);
 
 		return ok();
@@ -375,7 +368,6 @@ public class JavaShorts implements ExtendedShorts {
 		//delete shorts
 		var query1 = Hibernate.getInstance().sql("SELECT * FROM Short WHERE ownerId = '" + userId + "'", Short.class);
 		for(int i = 0; i < query1.size(); i++){
-			deleteBlob(query1.get(i));
 			Hibernate.getInstance().deleteOne(query1.get(i));
 		}
 
@@ -451,19 +443,21 @@ public class JavaShorts implements ExtendedShorts {
 		return 1L + (hits.isEmpty() ? 0L : hits.get(0));
 	}
 
-	
-	private Result<Void> deleteBlob(Short vid){
-		String[] params = vid.getBlobUrl().split("/blobs/");
 
-		URI uri = URI.create(params[0]);
-		String blobId = params[1];
+	@Override
+	public Result<Short> getShortByBlobId(String blobId) {
+		if(badParam(blobId))
+			return error(BAD_REQUEST);
 
-		blobClient.get().delete(blobId, "");
+		var shortList = Hibernate.getInstance().sql("SELECT * FROM Short WHERE blobUrl LIKE = '" + blobId + "'", Short.class);
 
-		discovery.updateBlobDistribution(uri, -1);
+		if(shortList.isEmpty())
+			return error(NOT_FOUND);
 
-		return ok();
+		return ok(shortList.get(0));
 	}
+
+
 	
 }
 

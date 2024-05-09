@@ -8,6 +8,7 @@ import static tukano.api.java.Result.ErrorCode.CONFLICT;
 import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
 import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
 import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
+import static tukano.impl.java.clients.Clients.ShortsClients;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +24,8 @@ import java.util.logging.Logger;
 import tukano.api.Blob;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
+import tukano.impl.api.java.ExtendedShorts;
+import tukano.impl.java.clients.ClientFactory;
 import tukano.impl.java.clients.Clients;
 import utils.*;
 
@@ -34,6 +37,8 @@ public class JavaBlobs implements ExtendedBlobs {
 	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
 	private static final int CHUNK_SIZE = 4096;
+
+	ClientFactory<ExtendedShorts> client = ShortsClients;
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
@@ -52,21 +57,21 @@ public class JavaBlobs implements ExtendedBlobs {
 			Files.write(path, bytes);
 
 		} catch (IOException e) {
-			return Result.error(INTERNAL_ERROR);
+			return error(INTERNAL_ERROR);
 		}
 
 		Hibernate.getInstance().persistOne(new Blob(blobId, blobId));
 
-		return Result.ok();
+		return ok();
 	}
 
 	@Override
 	public Result<byte[]> download(String blobId) {
 
-		var blobList = Hibernate.getInstance().sql("SELECT * FROM Blob WHERE blobId = '"
-				+ blobId + "'", Blob.class);
+		var result = client.get().getShortByBlobId(blobId);
+		if(!result.isOK())
+			return error(NOT_FOUND);
 
-		Blob blob = blobList.get(0);
 		byte[] content;
 
 		try{
@@ -75,7 +80,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 			content = Files.readAllBytes(path);
 		}catch (IOException e){
-			return Result.error(INTERNAL_ERROR);
+			return error(INTERNAL_ERROR);
 		}
 
 

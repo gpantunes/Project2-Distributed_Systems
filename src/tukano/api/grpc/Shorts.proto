@@ -26,6 +26,8 @@ service Shorts {
 
 	rpc deleteAllShorts( DeleteAllShortsArgs ) returns (DeleteAllShortsResult);
 
+	rpc getShortByBlobId( ShortByBlobIdArgs ) returns (ShortByBlobIdArgs);
+
 }
 
 message GrpcShort {
@@ -123,4 +125,8 @@ message DeleteAllShortsArgs {
 }
 
 message DeleteAllShortsResult {
+}
+
+message ShortByBlobIdArgs{
+	string blobId = 1;
 }

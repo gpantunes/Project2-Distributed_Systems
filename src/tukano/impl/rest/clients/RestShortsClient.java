@@ -131,10 +131,10 @@ public class RestShortsClient extends RestClient implements ExtendedShorts{
 	public <T> Result<T> _getShortByBlobId(String blobId) {
 		return (Result<T>) super.toJavaResult(
 				target
-						.path(blobId)
-						.path("/blob")
-						.request()
-						.get(), Short.class);
+				.path(blobId)
+				.path("/blob")
+				.request()
+				.get(), Short.class);
 	}
 		
 	@Override

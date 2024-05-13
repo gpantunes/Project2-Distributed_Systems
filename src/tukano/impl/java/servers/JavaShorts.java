@@ -446,15 +446,23 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Short> getShortByBlobId(String blobId) {
+
+		Log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" +
+				"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% mega log");
+
 		if(badParam(blobId))
 			return error(BAD_REQUEST);
 
-		var shortList = Hibernate.getInstance().sql("SELECT * FROM Short WHERE blobUrl LIKE = '" + blobId + "'", Short.class);
+
+		var shortList = Hibernate.getInstance().sql("SELECT * FROM Short WHERE shortId = '" + blobId + "'", Short.class);
+
+		Log.info("$$$$$$$$$$$$$$$$$ blobId: " + blobId + " shortList size: " + shortList.size());
+
 
 		if(shortList.isEmpty())
 			return error(NOT_FOUND);
 
-		return ok(shortList.get(0));
+		return ok();
 	}
 
 

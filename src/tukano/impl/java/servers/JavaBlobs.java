@@ -68,7 +68,12 @@ public class JavaBlobs implements ExtendedBlobs {
 	@Override
 	public Result<byte[]> download(String blobId) {
 
+		Log.info("$$$$$$$$$$$$$$$$$ entrou no download");
+
 		var result = client.get().getShortByBlobId(blobId);
+
+		Log.info("%%%%%%%%%%%%%%%%% result do get client: " + result);
+
 		if(!result.isOK())
 			return error(NOT_FOUND);
 

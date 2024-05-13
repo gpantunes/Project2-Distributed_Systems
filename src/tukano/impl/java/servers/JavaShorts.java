@@ -47,7 +47,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	Discovery discovery = Discovery.getInstance();
 	URI[] blobUris = discovery.knownUrisOf("blobs", 1);
-	ClientFactory<Users> client = UsersClients;
+	ClientFactory<Users> userClient = UsersClients;
 	ClientFactory<ExtendedBlobs> blobClient = BlobsClients;
 
 	static record Credentials(String userId, String pwd) {
@@ -100,7 +100,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Short> createShort(String userId, String password) {
-		var result = client.get().getUser(userId, password);
+		var result = userClient.get().getUser(userId, password);
 
 		if(!result.isOK()) {
 			Log.info(String.valueOf(error(result.error())));
@@ -139,7 +139,7 @@ public class JavaShorts implements ExtendedShorts {
 
 		String ownerId = vid.getOwnerId();
 
-		var result = client.get().getUser(ownerId, password);
+		var result = userClient.get().getUser(ownerId, password);
 		if(!result.isOK())
 			return Result.error(result.error());
 
@@ -166,6 +166,11 @@ public class JavaShorts implements ExtendedShorts {
 		if(badParam(userId))
 			return error(BAD_REQUEST);
 
+		Result res = userClient.get().existsUser(userId);
+		Log.info("#################### res: " + res);
+		if(!res.isOK())
+			return error(NOT_FOUND);
+
 		var shortList = Hibernate.getInstance().sql("SELECT * FROM Short WHERE ownerId = '" + userId + "'", Short.class);
 		List<String> idList = new ArrayList<>(shortList.size());
 
@@ -180,7 +185,7 @@ public class JavaShorts implements ExtendedShorts {
 		if(badParam(userId1) || badParam(userId2) || badParam(password))
 			return error(BAD_REQUEST);
 
-		var result1 = client.get().getUser(userId1, password);
+		var result1 = userClient.get().getUser(userId1, password);
 		if(!result1.isOK())
 			return Result.error(result1.error());
 
@@ -205,7 +210,7 @@ public class JavaShorts implements ExtendedShorts {
 		if(badParam(userId) || badParam(password))
 			return error(BAD_REQUEST);
 
-		var result = client.get().getUser(userId, password);
+		var result = userClient.get().getUser(userId, password);
 
 		if(!result.isOK())
 			return Result.error(result.error());
@@ -223,14 +228,11 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Void> like(String shortId, String userId, boolean isLiked, String password) {
-		Log.info("$$$$$$$$$$$$$$$$$$ shortId " + shortId + " userId " + userId + " isLiked " + isLiked);
-
 		if(badParam(shortId) || badParam(userId) || badParam(password))
 			return error(BAD_REQUEST);
 
-		var result = client.get().getUser(userId, password);
+		var result = userClient.get().getUser(userId, password);
 		var vid = getShort(shortId).value();
-		int totalLikes = vid.getTotalLikes();
 
 		if(!result.isOK())
 			return Result.error(result.error());
@@ -243,18 +245,15 @@ public class JavaShorts implements ExtendedShorts {
 			if(!likeList.isEmpty())
 				return error(CONFLICT);
 
-            /*var userLikes = Hibernate.getInstance().sql("SELECT * FROM Likes WHERE userId = '"
-                    + userId + "'", Likes.class);*/
-
 			Hibernate.getInstance().persistOne(new Likes(userId, shortId));
-			vid.setTotalLikes(totalLikes + 1);
+			vid.setTotalLikes(1);
 			Hibernate.getInstance().updateOne(vid);
 		}else {
 			if(likeList.isEmpty())
 				return error(NOT_FOUND);
 
 			Hibernate.getInstance().deleteOne(likeList.get(0));
-			vid.setTotalLikes(totalLikes - 1);
+			vid.setTotalLikes(-1);
 			Hibernate.getInstance().updateOne(vid);
 		}
 		return ok();
@@ -270,7 +269,7 @@ public class JavaShorts implements ExtendedShorts {
 			return error(NOT_FOUND);
 
 		String ownerId = vid.getOwnerId();
-		var result = client.get().getUser(ownerId, password);
+		var result = userClient.get().getUser(ownerId, password);
 		if(!result.isOK())
 			return Result.error(result.error());
 
@@ -288,7 +287,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<List<String>> getFeed(String userId, String password) {
-		var result = client.get().getUser(userId, password);
+		var result = userClient.get().getUser(userId, password);
 
 		if(!result.isOK()) {
 			return Result.error(result.error());
@@ -384,7 +383,15 @@ public class JavaShorts implements ExtendedShorts {
 		//delete likes
 		var query3 = Hibernate.getInstance().sql("SELECT * FROM Likes WHERE userId = '" + userId + "'", Likes.class);
 		for(int i = 0; i < query3.size(); i++){
-			Log.info("##################### like: " + query3.get(i).getShortId() + " userId " + query3.get(i).getUserId());
+			Likes like = query3.get(i);
+
+			Result res = getShort(like.getShortId());
+			if(res.isOK()){
+				Short vid = (Short) res.value();
+				vid.setTotalLikes(-1);
+				Hibernate.getInstance().updateOne(vid);
+			}
+
 			Hibernate.getInstance().deleteOne(query3.get(i));
 		}
 
@@ -451,18 +458,10 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Short> getShortByBlobId(String blobId) {
-
-		Log.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" +
-				"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% mega log");
-
 		if(badParam(blobId))
 			return error(BAD_REQUEST);
 
-
 		var shortList = Hibernate.getInstance().sql("SELECT * FROM Short WHERE shortId = '" + blobId + "'", Short.class);
-
-		Log.info("$$$$$$$$$$$$$$$$$ blobId: " + blobId + " shortList size: " + shortList.size());
-
 
 		if(shortList.isEmpty())
 			return error(NOT_FOUND);
@@ -470,7 +469,5 @@ public class JavaShorts implements ExtendedShorts {
 		return ok();
 	}
 
-
-	
 }
 

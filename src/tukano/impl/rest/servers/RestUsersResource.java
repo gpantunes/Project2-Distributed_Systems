@@ -40,4 +40,9 @@ public class RestUsersResource extends RestResource implements RestUsers {
 	public List<User> searchUsers(String pattern) {
 		return super.resultOrThrow( impl.searchUsers( pattern));
 	}
+
+	@Override
+	public Void existsUser(String userId) {
+		return super.resultOrThrow( impl.existsUser( userId ));
+	}
 }

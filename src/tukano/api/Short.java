@@ -73,8 +73,8 @@ public class Short {
 		return totalLikes;
 	}
 
-	public void setTotalLikes(int totalLikes) {
-		this.totalLikes = totalLikes;
+	public void setTotalLikes(int change) {
+		this.totalLikes += change;
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package tukano.impl.api.rest;
 
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import tukano.api.Short;
 import tukano.api.rest.RestShorts;
 

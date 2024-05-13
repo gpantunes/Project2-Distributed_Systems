@@ -3,15 +3,12 @@ package tukano.impl.java.servers;
 import static java.lang.String.format;
 import static tukano.api.java.Result.ErrorCode.*;
 import static tukano.api.java.Result.error;
-import static tukano.api.java.Result.errorOrResult;
 import static tukano.api.java.Result.errorOrValue;
 import static tukano.api.java.Result.ok;
 import static tukano.impl.java.clients.Clients.ShortsClients;
-import static tukano.impl.java.clients.Clients.UsersClients;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import tukano.api.User;
@@ -19,10 +16,7 @@ import tukano.api.java.Result;
 import tukano.api.java.Users;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.java.clients.ClientFactory;
-import tukano.impl.java.clients.Clients;
-import utils.DB;
 import utils.Hibernate;
-import utils.Token;
 
 public class JavaUsers implements Users {
 	
@@ -120,6 +114,18 @@ public class JavaUsers implements Users {
 		var hits = Hibernate.getInstance().sql("SELECT * FROM User WHERE LOWER(userId) LIKE '%" + pattern + "%'", User.class);
 
 		return ok(hits);
+	}
+
+	@Override
+	public Result<Void> existsUser(String userId){
+		Log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$ entrou no existsUser");
+
+		var hits = Hibernate.getInstance().sql("SELECT * FROM User WHERE userId = '" + userId + "'", User.class);
+
+		if(hits.isEmpty())
+			return error(NOT_FOUND);
+
+		return ok();
 	}
 
 	

@@ -50,5 +50,9 @@ public interface RestUsers {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	List<User> searchUsers(@QueryParam(QUERY) String pattern);	
+	List<User> searchUsers(@QueryParam(QUERY) String pattern);
+
+	@GET
+	@Path("/{" + USER_ID + "}/exists")
+	Void existsUser(@QueryParam(USER_ID) String userId);
 }

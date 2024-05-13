@@ -131,9 +131,11 @@ public class JavaShorts implements ExtendedShorts {
 		if(badParam(shortId) || badParam(password))
 			return error(BAD_REQUEST);
 
-		Short vid = getShort(shortId).value();
-		if(vid == null)
+		Result res = getShort(shortId);
+		if(!res.isOK())
 			return error(NOT_FOUND);
+
+		Short vid = (Short) res.value();
 
 		String ownerId = vid.getOwnerId();
 
@@ -221,6 +223,8 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Void> like(String shortId, String userId, boolean isLiked, String password) {
+		Log.info("$$$$$$$$$$$$$$$$$$ shortId " + shortId + " userId " + userId + " isLiked " + isLiked);
+
 		if(badParam(shortId) || badParam(userId) || badParam(password))
 			return error(BAD_REQUEST);
 
@@ -380,6 +384,8 @@ public class JavaShorts implements ExtendedShorts {
 		//delete likes
 		var query3 = Hibernate.getInstance().sql("SELECT * FROM Likes WHERE userId = '" + userId + "'", Likes.class);
 		for(int i = 0; i < query3.size(); i++){
+			Log.info("##################### like: " + query3.get(i).getShortId() + " userId " + query3.get(i).getUserId());
+			Log.info("%%%%%%%%%%%%%%%%%%%" + likes(query3.get(i).getShortId(), password).value());
 			Hibernate.getInstance().deleteOne(query3.get(i));
 		}
 

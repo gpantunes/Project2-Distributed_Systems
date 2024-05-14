@@ -54,5 +54,5 @@ public interface RestUsers {
 
 	@GET
 	@Path("/{" + USER_ID + "}/exists")
-	Void existsUser(@QueryParam(USER_ID) String userId);
+	Void existsUser(@PathParam(USER_ID) String userId);
 }

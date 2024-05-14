@@ -7,7 +7,7 @@
 		<property name="connection.username">sa</property>
 		<property name="connection.password"></property>
 		<!-- JDBC connection pool settings ... using built-in test pool -->
-		<property name="connection.pool_size">128</property>
+		<property name="connection.pool_size">512</property>
 		<!-- Echo the SQL to stdout -->
 		<property name="show_sql">false</property>
 		<!-- Set the current session context -->

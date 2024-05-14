@@ -119,7 +119,7 @@ public class JavaUsers implements Users {
 	@Override
 	public Result<Void> existsUser(String userId){
 		var hits = Hibernate.getInstance().sql("SELECT * FROM User WHERE userId = '" + userId + "'", User.class);
-		
+
 		if(hits.isEmpty())
 			return error(NOT_FOUND);
 

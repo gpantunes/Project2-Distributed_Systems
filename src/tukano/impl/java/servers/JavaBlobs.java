@@ -42,6 +42,8 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
+		Log.info("%%%%%%%%%%%%%%%%%% entrou no upload " + blobId);
+
 		String filePath = BLOBS_ROOT_DIR + blobId;
 		String directoryPath = BLOBS_ROOT_DIR;
 
@@ -68,6 +70,8 @@ public class JavaBlobs implements ExtendedBlobs {
 	@Override
 	public Result<byte[]> download(String blobId) {
 		var result = client.get().getShortByBlobId(blobId);
+
+		Log.info("#################### download " + blobId);
 
 		if(!result.isOK())
 			return error(NOT_FOUND);
@@ -128,7 +132,13 @@ public class JavaBlobs implements ExtendedBlobs {
 	public Result<Void> downloadToSink(String blobId, Consumer<byte[]> sink) {
 		Log.info(() -> format("downloadToSink : blobId = %s\n", blobId));
 
-		var file = toFilePath(blobId);
+		Result res = download(blobId);
+
+		if(!res.isOK())
+			return error(INTERNAL_ERROR);
+		else return ok();
+
+		/*var file = toFilePath(blobId);
 
 		if (file == null)
 			return error(BAD_REQUEST);
@@ -142,7 +152,7 @@ public class JavaBlobs implements ExtendedBlobs {
 			return ok();
 		} catch (IOException x) {
 			return error(INTERNAL_ERROR);
-		}
+		}*/
 	}
 
 	@Override

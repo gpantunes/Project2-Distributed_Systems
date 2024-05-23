@@ -20,7 +20,7 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 
 	final UsersGrpc.UsersBlockingStub stub;
 
-	public GrpcUsersClient(String serverURI) {
+	public GrpcUsersClient(String serverURI) throws Exception {
 		super(serverURI);
 		this.stub = UsersGrpc.newBlockingStub( super.channel );	
 	}

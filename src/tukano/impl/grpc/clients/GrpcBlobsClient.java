@@ -1,6 +1,7 @@
 package tukano.impl.grpc.clients;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.util.function.Consumer;
 
 import com.google.protobuf.ByteString;
@@ -17,7 +18,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
 	final BlobsGrpc.BlobsBlockingStub stub;
 
-	public GrpcBlobsClient(String serverURI) {
+	public GrpcBlobsClient(String serverURI) throws Exception {
 		super(serverURI);
 		this.stub = BlobsGrpc.newBlockingStub( super.channel );
 	}
@@ -70,7 +71,8 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 	}
 	
 	@Override
-	public Result<Void> delete(String blobId, String token) {
+	public Result<Void> delete(String blobURL, String token) {
+		var blobId = blobURL.substring( blobURL.lastIndexOf('/') + 1);
 		return super.toJavaResult(() -> {
 			stub.delete( DeleteArgs.newBuilder()
 				.setBlobId(blobId)

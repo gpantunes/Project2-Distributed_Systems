@@ -1,14 +1,23 @@
 package tukano.impl.grpc.servers;
 
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.KeyStore;
 import java.util.logging.Logger;
 
 import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.NettyServerBuilder;
+
+import io.netty.handler.ssl.SslContextBuilder;
 import tukano.impl.discovery.Discovery;
 import tukano.impl.java.servers.AbstractServer;
 import utils.IP;
+
+import javax.net.ssl.KeyManagerFactory;
+
+import static tukano.impl.grpc.servers.GrpcUsersServer.PORT;
 
 
 public class AbstractGrpcServer extends AbstractServer {
@@ -18,15 +27,28 @@ public class AbstractGrpcServer extends AbstractServer {
 
 	protected final Server server;
 
-	protected AbstractGrpcServer(Logger log, String service, int port, AbstractGrpcStub stub) {
+	protected AbstractGrpcServer(Logger log, String service, int port, AbstractGrpcStub stub) throws Exception {
 		super(log, service, String.format(SERVER_BASE_URI, IP.hostAddress(), port, GRPC_CTX));
-		this.server = ServerBuilder.forPort(port).addService(stub).build();
+
+		var keyStore = System.getProperty("javax.net.ssl.keyStore");
+		var keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword");
+
+		var keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+		try (var in = new FileInputStream(keyStore)) {
+			keystore.load(in, keyStorePassword.toCharArray());
+		}
+
+		var keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		keyManagerFactory.init(keystore, keyStorePassword.toCharArray());
+
+		var sslContext = GrpcSslContexts.configure(SslContextBuilder.forServer(keyManagerFactory)).build();
+		this.server = NettyServerBuilder.forPort(PORT).addService(stub).sslContext(sslContext).build();
 	}
 
 	protected void start() throws IOException {
-		
+
 		Discovery.getInstance().announce(service, super.serverURI);
-		
+
 		Log.info(String.format("%s gRPC Server ready @ %s\n", service, serverURI));
 
 		server.start();
@@ -36,5 +58,5 @@ public class AbstractGrpcServer extends AbstractServer {
 			System.err.println("*** server shut down");
 		}));
 	}
-	
+
 }

@@ -7,7 +7,7 @@
 		<property name="connection.username">sa</property>
 		<property name="connection.password"></property>
 		<!-- JDBC connection pool settings ... using built-in test pool -->
-		<property name="connection.pool_size">128</property>
+		<property name="connection.pool_size">64</property>
 		<!-- Echo the SQL to stdout -->
 		<property name="show_sql">false</property>
 		<!-- Set the current session context -->
@@ -22,8 +22,7 @@
 		<property name="hibernate.dbcp.maxWaitMillis">-1</property>
 		<mapping class="tukano.api.User" />
 		<mapping class="tukano.api.Short" />
-		<mapping class="tukano.api.Follow" />
-		<mapping class="tukano.api.Likes" />
-		<mapping class="tukano.api.Blob" />
+		<mapping class="tukano.impl.java.servers.data.Following" />
+		<mapping class="tukano.impl.java.servers.data.Likes" />
 	</session-factory>
 </hibernate-configuration>

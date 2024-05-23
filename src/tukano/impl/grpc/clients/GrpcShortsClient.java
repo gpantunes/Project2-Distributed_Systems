@@ -23,7 +23,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	final ShortsGrpc.ShortsBlockingStub stub;
 
-	public GrpcShortsClient(String serverURI) {
+	public GrpcShortsClient(String serverURI) throws Exception {
 		super(serverURI);
 		this.stub = ShortsGrpc.newBlockingStub( super.channel );	
 	}
@@ -142,14 +142,5 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 					.build());
 		});
 	}
-
-	@Override
-	public Result<Short> getShortByBlobId(String blobId) {
-		return super.toJavaResult(() -> {
-			var res = stub.getShortByBlodId(GetShortByBlobIdArgs.newBuilder()
-							.setBlobId(blobId))
-					.build();
-		});
-	}
-
+	
 }

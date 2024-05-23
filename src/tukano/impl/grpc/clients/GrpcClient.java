@@ -3,19 +3,15 @@ package tukano.impl.grpc.clients;
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.ok;
 import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
-import static tukano.api.java.Result.ErrorCode.TIMEOUT;
 
 import java.io.FileInputStream;
 import java.net.URI;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.util.function.Supplier;
 
 import io.grpc.Channel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.grpc.Status.Code;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -47,12 +43,8 @@ public class GrpcClient {
 		var sslContext = GrpcSslContexts.configure( scb ).build();
 
 		this.channel = NettyChannelBuilder.forAddress(serverURI.getHost(), serverURI.getPort()).sslContext(sslContext).build();
-
-
-		/*this.channel = ManagedChannelBuilder.forAddress(serverURI.getHost(), serverURI.getPort())
-				.usePlaintext().enableRetry().build();*/
 	}
-	
+
 	protected <T> Result<T> toJavaResult(Supplier<T> func) {
 		try {
 			return ok(func.get());
@@ -68,21 +60,21 @@ public class GrpcClient {
 		return toJavaResult( () -> {
 			proc.run();
 			return null;
-		} );		
+		} );
 	}
 
 	protected static ErrorCode statusToErrorCode(Status status) {
 		return switch (status.getCode()) {
-		case OK -> ErrorCode.OK;
-		case NOT_FOUND -> ErrorCode.NOT_FOUND;
-		case ALREADY_EXISTS -> ErrorCode.CONFLICT;
-		case PERMISSION_DENIED -> ErrorCode.FORBIDDEN;
-		case INVALID_ARGUMENT -> ErrorCode.BAD_REQUEST;
-		case UNIMPLEMENTED -> ErrorCode.NOT_IMPLEMENTED;
-		default -> ErrorCode.INTERNAL_ERROR;
+			case OK -> ErrorCode.OK;
+			case NOT_FOUND -> ErrorCode.NOT_FOUND;
+			case ALREADY_EXISTS -> ErrorCode.CONFLICT;
+			case PERMISSION_DENIED -> ErrorCode.FORBIDDEN;
+			case INVALID_ARGUMENT -> ErrorCode.BAD_REQUEST;
+			case UNIMPLEMENTED -> ErrorCode.NOT_IMPLEMENTED;
+			default -> ErrorCode.INTERNAL_ERROR;
 		};
 	}
-	
+
 	@Override
 	public String toString() {
 		return serverURI.toString();

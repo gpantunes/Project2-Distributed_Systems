@@ -1,13 +1,8 @@
 package tukano.impl.auth;
 
-import com.github.scribejava.core.builder.ServiceBuilder;
-import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
-import com.github.scribejava.core.oauth.OAuth20Service;
-import com.google.gson.Gson;
-import org.pac4j.scribe.builder.api.DropboxApi20;
 import tukano.impl.auth.msgs.DeleteFolderV2Args;
 
 public class DeleteFile extends Auth{

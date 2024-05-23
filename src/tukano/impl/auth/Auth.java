@@ -1,10 +1,10 @@
 package tukano.impl.auth;
 
-import com.github.scribejava.core.builder.ServiceBuilder;
-import com.google.gson.Gson;
 
+import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.oauth.OAuth20Service;
+import com.google.gson.Gson;
 import org.pac4j.scribe.builder.api.DropboxApi20;
 
 public abstract class Auth {

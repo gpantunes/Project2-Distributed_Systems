@@ -28,9 +28,10 @@ public class RestBlobsClient extends RestClient implements ExtendedBlobs {
 				.get(), byte[].class);
 	}
 
-	private Result<Void> _delete(String blobURL) {
+	private Result<Void> _delete(String blobURL, String token) {
 		return super.toJavaResult(
-				client.target( blobURL ).path( blobURL )
+				client.target( blobURL )
+				.queryParam( RestExtendedBlobs.TOKEN, token )
 				.request()
 				.delete());
 	}
@@ -55,8 +56,8 @@ public class RestBlobsClient extends RestClient implements ExtendedBlobs {
 	}
 
 	@Override
-	public Result<Void> delete(String blobId) {
-		return super.reTry( () -> _delete(blobId));
+	public Result<Void> delete(String blobId, String token) {
+		return super.reTry( () -> _delete(blobId, token));
 	}
 	
 	@Override

@@ -3,111 +3,90 @@ package tukano.impl.java.servers;
 import static java.lang.String.format;
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.ok;
+import static tukano.api.java.Result.ErrorCode.BAD_REQUEST;
+import static tukano.api.java.Result.ErrorCode.CONFLICT;
 import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
 import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
 import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
-import static tukano.impl.java.clients.Clients.ShortsClients;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import com.github.scribejava.core.model.Response;
-import tukano.api.Blob;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
-import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.auth.CreateDirectory;
-import tukano.impl.auth.DeleteFile;
 import tukano.impl.auth.DownloadFile;
 import tukano.impl.auth.UploadFile;
-import tukano.impl.java.clients.ClientFactory;
 import tukano.impl.java.clients.Clients;
-import utils.*;
+import utils.Hash;
+import utils.Hex;
+import utils.IO;
+import utils.Token;
 
 public class JavaBlobs implements ExtendedBlobs {
-	private static final String ADMIN_TOKEN = Args.valueOf("-token", "");
 	
-	private static final String BLOBS_ROOT_DIR = "blobFiles";
+	private static final String BLOBS_ROOT_DIR = "/tmp/blobs/";
+	private static final String DROPBOX_BLOBS_DIR = "/blobFiles";
 	
 	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
 	private static final int CHUNK_SIZE = 4096;
 
-	ClientFactory<ExtendedShorts> client = ShortsClients;
-
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
-		Log.info("%%%%%%%%%%%%%%%%%% entrou no upload " + blobId);
+		Log.info(() -> format("upload : blobId = %s, sha256 = %s\n", blobId, Hex.of(Hash.sha256(bytes))));
 
-		String filePath = BLOBS_ROOT_DIR + "/" + blobId;
-		String directoryPath = BLOBS_ROOT_DIR + "/";
+		/*if (!validBlobId(blobId))
+			return error(FORBIDDEN);
 
-		/*try {
-			Path directory = Paths.get(directoryPath);
-			if (!Files.exists(directory))
-				Files.createDirectories(directory);
+		var file = toFilePath(blobId);
+		if (file == null)
+			return error(BAD_REQUEST);
 
-			// Convert byte array to Path object
-			Path path = Paths.get(filePath);
+		if (file.exists()) {
+			if (Arrays.equals(Hash.sha256(bytes), Hash.sha256(IO.read(file))))
+				return ok();
+			else
+				return error(CONFLICT);
 
-			// Write the bytes to the file
-			Files.write(path, bytes);
+		}
+		IO.write(file, bytes);*/
 
-		} catch (IOException e) {
-			return error(INTERNAL_ERROR);
-		}*/
 
-		try{
+		try {
 			String[] args = new String[1];
-			args[0] = "/" + BLOBS_ROOT_DIR;
+			args[0] = DROPBOX_BLOBS_DIR;
 			CreateDirectory.main(args);
 		} catch (Exception e) {
 			//throw new RuntimeException(e);
 		}
 
-		Log.info("%%%%%%%%%%%%%%%%%%% bytes " + bytes);
-		Log.info("%%%%%%%%%%%%%%%%%%% string" + bytes.toString());
-
-		try{
+		try {
 			String[] args = new String[2];
-			args[0] = "/" + BLOBS_ROOT_DIR + "/" + blobId;
+			args[0] = BLOBS_ROOT_DIR + "/" + blobId;
 			args[1] = new String(bytes, StandardCharsets.UTF_8);
 			UploadFile.main(args);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		Hibernate.getInstance().persistOne(new Blob(blobId, blobId));
-
 		return ok();
 	}
 
 	@Override
 	public Result<byte[]> download(String blobId) {
-		var result = client.get().getShortByBlobId(blobId);
-
-		Log.info("#################### download " + blobId);
-
-		if(!result.isOK())
-			return error(NOT_FOUND);
+		Log.info(() -> format("download : blobId = %s\n", blobId));
 
 		byte[] content;
-
-		/*try{
-			String filePath = BLOBS_ROOT_DIR + "/" + blobId;
-			Path path = Paths.get(filePath);
-
-			content = Files.readAllBytes(path);
-		}catch (IOException e){
-			return error(INTERNAL_ERROR);
-		}*/
-
 
 		try{
 			String[] args = new String[1];
@@ -125,60 +104,29 @@ public class JavaBlobs implements ExtendedBlobs {
 			throw new RuntimeException(e);
 		}
 
-		return Result.ok(content);
-	}
+		return ok(content);
 
-
-	/*@Override
-	public Result<Void> upload(String blobId, byte[] bytes) {
-		Log.info(() -> format("upload : blobId = %s, sha256 = %s\n", blobId, Hex.of(Hash.sha256(bytes))));
-
-		if (!validBlobId(blobId))
-			return error(FORBIDDEN);
-
-		var file = toFilePath(blobId);
-		if (file == null)
-			return error(BAD_REQUEST);
-
-		if (file.exists()) {
-			if (Arrays.equals(Hash.sha256(bytes), Hash.sha256(IO.read(file))))
-				return ok();
-			else
-				return error(CONFLICT);
-
-		}
-		IO.write(file, bytes);
-		return ok();
-	}
-
-	@Override
-	public Result<byte[]> download(String blobId) {
-		Log.info(() -> format("download : blobId = %s\n", blobId));
-
-		var file = toFilePath(blobId);
+		/*var file = toFilePath(blobId);
 		if (file == null)
 			return error(BAD_REQUEST);
 
 		if (file.exists())
 			return ok(IO.read(file));
 		else
-			return error(NOT_FOUND);
-	}*/
+			return error(NOT_FOUND);*/
+	}
 
 	@Override
 	public Result<Void> downloadToSink(String blobId, Consumer<byte[]> sink) {
 		Log.info(() -> format("downloadToSink : blobId = %s\n", blobId));
 
-		Result res = download(blobId);
-
-		if(!res.isOK())
-			return error(INTERNAL_ERROR);
-		else return ok();
-
-		/*var file = toFilePath(blobId);
+		var file = toFilePath(blobId);
 
 		if (file == null)
 			return error(BAD_REQUEST);
+
+		if( ! file.exists() )
+			return error(NOT_FOUND);
 
 		try (var fis = new FileInputStream(file)) {
 			int n;
@@ -189,20 +137,26 @@ public class JavaBlobs implements ExtendedBlobs {
 			return ok();
 		} catch (IOException x) {
 			return error(INTERNAL_ERROR);
-		}*/
+		}
 	}
 
 	@Override
-	public Result<Void> delete(String blobId) {
-		Log.info(() -> format("delete : blobId = %s", blobId));
+	public Result<Void> delete(String blobId, String token) {
+		Log.info(() -> format("delete : blobId = %s, token=%s\n", blobId, token));
+	
+		if( ! Token.matches( token ) )
+			return error(FORBIDDEN);
+
 		
-		try{
-			String[] args = new String[1];
-			args[0] = "/" + BLOBS_ROOT_DIR + "/" + blobId;
-			DeleteFile.main(args);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		var file = toFilePath(blobId);
+
+		if (file == null)
+			return error(BAD_REQUEST);
+
+		if( ! file.exists() )
+			return error(NOT_FOUND);
+			
+		IO.delete( file );
 		return ok();
 	}
 	

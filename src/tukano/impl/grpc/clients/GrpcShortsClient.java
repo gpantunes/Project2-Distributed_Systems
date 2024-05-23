@@ -142,15 +142,5 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 					.build());
 		});
 	}
-
-	@Override
-	public Result<Short> getShortByBlobId(String blobId) {
-		/*return super.toJavaResult(() -> {
-			var res = stub.getShortByBlodId(GetShortByBlobIdArgs.newBuilder()
-							.setBlobId(blobId))
-					.build();
-		});*/
-		return null;
-	}
-
+	
 }

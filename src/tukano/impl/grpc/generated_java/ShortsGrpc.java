@@ -325,37 +325,6 @@ public final class ShortsGrpc {
     return getDeleteAllShortsMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs,
-      tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs> getGetShortByBlobIdMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "getShortByBlobId",
-      requestType = tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs.class,
-      responseType = tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs,
-      tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs> getGetShortByBlobIdMethod() {
-    io.grpc.MethodDescriptor<tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs, tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs> getGetShortByBlobIdMethod;
-    if ((getGetShortByBlobIdMethod = ShortsGrpc.getGetShortByBlobIdMethod) == null) {
-      synchronized (ShortsGrpc.class) {
-        if ((getGetShortByBlobIdMethod = ShortsGrpc.getGetShortByBlobIdMethod) == null) {
-          ShortsGrpc.getGetShortByBlobIdMethod = getGetShortByBlobIdMethod =
-              io.grpc.MethodDescriptor.<tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs, tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "getShortByBlobId"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs.getDefaultInstance()))
-              .setSchemaDescriptor(new ShortsMethodDescriptorSupplier("getShortByBlobId"))
-              .build();
-        }
-      }
-    }
-    return getGetShortByBlobIdMethod;
-  }
-
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -473,13 +442,6 @@ public final class ShortsGrpc {
         io.grpc.stub.StreamObserver<tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsResult> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteAllShortsMethod(), responseObserver);
     }
-
-    /**
-     */
-    default void getShortByBlobId(tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs request,
-        io.grpc.stub.StreamObserver<tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetShortByBlobIdMethod(), responseObserver);
-    }
   }
 
   /**
@@ -588,14 +550,6 @@ public final class ShortsGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getDeleteAllShortsMethod(), getCallOptions()), request, responseObserver);
     }
-
-    /**
-     */
-    public void getShortByBlobId(tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs request,
-        io.grpc.stub.StreamObserver<tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getGetShortByBlobIdMethod(), getCallOptions()), request, responseObserver);
-    }
   }
 
   /**
@@ -682,13 +636,6 @@ public final class ShortsGrpc {
     public tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsResult deleteAllShorts(tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsArgs request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getDeleteAllShortsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs getShortByBlobId(tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getGetShortByBlobIdMethod(), getCallOptions(), request);
     }
   }
 
@@ -787,14 +734,6 @@ public final class ShortsGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getDeleteAllShortsMethod(), getCallOptions()), request);
     }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs> getShortByBlobId(
-        tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getGetShortByBlobIdMethod(), getCallOptions()), request);
-    }
   }
 
   private static final int METHODID_CREATE_SHORT = 0;
@@ -807,7 +746,6 @@ public final class ShortsGrpc {
   private static final int METHODID_LIKES = 7;
   private static final int METHODID_GET_FEED = 8;
   private static final int METHODID_DELETE_ALL_SHORTS = 9;
-  private static final int METHODID_GET_SHORT_BY_BLOB_ID = 10;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -865,10 +803,6 @@ public final class ShortsGrpc {
         case METHODID_DELETE_ALL_SHORTS:
           serviceImpl.deleteAllShorts((tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsArgs) request,
               (io.grpc.stub.StreamObserver<tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsResult>) responseObserver);
-          break;
-        case METHODID_GET_SHORT_BY_BLOB_ID:
-          serviceImpl.getShortByBlobId((tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs) request,
-              (io.grpc.stub.StreamObserver<tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -958,13 +892,6 @@ public final class ShortsGrpc {
               tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsArgs,
               tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsResult>(
                 service, METHODID_DELETE_ALL_SHORTS)))
-        .addMethod(
-          getGetShortByBlobIdMethod(),
-          io.grpc.stub.ServerCalls.asyncUnaryCall(
-            new MethodHandlers<
-              tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs,
-              tukano.impl.grpc.generated_java.ShortsProtoBuf.ShortByBlobIdArgs>(
-                service, METHODID_GET_SHORT_BY_BLOB_ID)))
         .build();
   }
 
@@ -1023,7 +950,6 @@ public final class ShortsGrpc {
               .addMethod(getLikesMethod())
               .addMethod(getGetFeedMethod())
               .addMethod(getDeleteAllShortsMethod())
-              .addMethod(getGetShortByBlobIdMethod())
               .build();
         }
       }

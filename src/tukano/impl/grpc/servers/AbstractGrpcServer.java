@@ -2,16 +2,11 @@ package tukano.impl.grpc.servers;
 
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.util.logging.Logger;
 
 import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyServerBuilder;
 
@@ -48,14 +43,12 @@ public class AbstractGrpcServer extends AbstractServer {
 
 		var sslContext = GrpcSslContexts.configure(SslContextBuilder.forServer(keyManagerFactory)).build();
 		this.server = NettyServerBuilder.forPort(PORT).addService(stub).sslContext(sslContext).build();
-
-		//this.server = ServerBuilder.forPort(port).addService(stub).build();
 	}
 
 	protected void start() throws IOException {
-		
+
 		Discovery.getInstance().announce(service, super.serverURI);
-		
+
 		Log.info(String.format("%s gRPC Server ready @ %s\n", service, serverURI));
 
 		server.start();
@@ -65,5 +58,5 @@ public class AbstractGrpcServer extends AbstractServer {
 			System.err.println("*** server shut down");
 		}));
 	}
-	
+
 }

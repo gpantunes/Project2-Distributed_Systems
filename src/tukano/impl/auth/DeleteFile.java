@@ -17,15 +17,9 @@ public class DeleteFile extends Auth{
 	private static final int HTTP_SUCCESS = 200;
 	private static final String CONTENT_TYPE_HDR = "Content-Type";
 	private static final String JSON_CONTENT_TYPE = "application/json; charset=utf-8";
-	
-	private final Gson json;
-	private final OAuth20Service service;
-	private final OAuth2AccessToken accessToken;
-		
+
 	public DeleteFile() {
-		json = new Gson();
-		accessToken = new OAuth2AccessToken(accessTokenStr);
-		service = new ServiceBuilder(apiKey).apiSecret(apiSecret).build(DropboxApi20.INSTANCE);
+		super();
 	}
 	
 	public void execute( String directoryName ) throws Exception {

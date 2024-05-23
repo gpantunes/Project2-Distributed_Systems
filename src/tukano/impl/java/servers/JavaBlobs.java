@@ -3,21 +3,16 @@ package tukano.impl.java.servers;
 import static java.lang.String.format;
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.ok;
-import static tukano.api.java.Result.ErrorCode.BAD_REQUEST;
-import static tukano.api.java.Result.ErrorCode.CONFLICT;
 import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
 import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
 import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
 import static tukano.impl.java.clients.Clients.ShortsClients;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -28,6 +23,7 @@ import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.auth.CreateDirectory;
+import tukano.impl.auth.DeleteFile;
 import tukano.impl.auth.DownloadFile;
 import tukano.impl.auth.UploadFile;
 import tukano.impl.java.clients.ClientFactory;
@@ -197,22 +193,16 @@ public class JavaBlobs implements ExtendedBlobs {
 	}
 
 	@Override
-	public Result<Void> delete(String blobId, String token) {
-		Log.info(() -> format("delete : blobId = %s, token=%s\n", blobId, token));
-	
-		/*if( ! Token.matches( token ) )
-			return error(FORBIDDEN);*/
-
+	public Result<Void> delete(String blobId) {
+		Log.info(() -> format("delete : blobId = %s", blobId));
 		
-		var file = toFilePath(blobId);
-
-		if (file == null)
-			return error(BAD_REQUEST);
-
-		if( ! file.exists() )
-			return error(NOT_FOUND);
-			
-		IO.delete( file );
+		try{
+			String[] args = new String[1];
+			args[0] = "/" + BLOBS_ROOT_DIR + "/" + blobId;
+			DeleteFile.main(args);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 		return ok();
 	}
 	

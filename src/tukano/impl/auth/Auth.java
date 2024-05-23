@@ -9,9 +9,10 @@ import org.pac4j.scribe.builder.api.DropboxApi20;
 
 public abstract class Auth {
 
-    public static final String apiKey = "5i0yoqg5vqihusq";
-    public static final String apiSecret = "g5ftzysjjqgxhok";
-    public static final String accessTokenStr = "sl.B1lFf43pOwziiiQx1tdlK-rdOPvSFtp1LUtcWbvIGIoHbnnbPlo5sJr4HDt2MnJ2cxx-K-aus8wk1WHXy1FcJFhVAmt5nhExQbzVz9q11MSie6RbIgwPoXVpFymNAhZNbU_X9-hXEmbW";
+    public static final String apiKey = "xppjq79125sypnf\n";
+    public static final String apiSecret = "zexdhatp055eldc";
+    public static final String accessTokenStr = "sl.B1xjGWIvgOM2Z9AED3ktQ0E6ebqT6gDhuNehCJ_oHFmrLkSi4IMAWVrA4JhgdQOC8vtazmwx8Fm110zjKYfN7WzC1chVmi7fk1_-HItwWo7uvp5-hl4h2IodSfFtBY_mAcfcmFGs1D7K4Xass_9S9fw";
+
 
     public final Gson json;
     public final OAuth20Service service;

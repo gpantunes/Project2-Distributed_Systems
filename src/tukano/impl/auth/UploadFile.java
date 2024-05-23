@@ -44,14 +44,14 @@ public class UploadFile  extends Auth{
 	
 	public static void main(String[] args) throws Exception {
 
-		if( args.length != 1 ) {
+		if( args.length != 2 ) {
 			System.err.println("usage: java UploadFile <dir> <file>");
 			System.exit(0);
 		}
 		
 		var filePath = args[0];
 		
-		var fileContent = "This is the content of the file.";
+		var fileContent = args[1];
 		var cd = new UploadFile();
 		
 		cd.execute(filePath, fileContent);

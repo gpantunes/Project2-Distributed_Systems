@@ -1,13 +1,8 @@
 package tukano.impl.auth;
 
-import com.github.scribejava.core.builder.ServiceBuilder;
-import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
-import com.github.scribejava.core.oauth.OAuth20Service;
-import com.google.gson.Gson;
-import org.pac4j.scribe.builder.api.DropboxApi20;
 import tukano.impl.auth.msgs.DownloadFileArgs;
 
 public class DownloadFile  extends Auth{
@@ -23,7 +18,7 @@ public class DownloadFile  extends Auth{
 		super();
 	}
 	
-	public void execute( String filePath) throws Exception {
+	public Response execute(String filePath) throws Exception {
 		
 		var downloadFile = new OAuthRequest(Verb.POST, DOWNLOAD_FILE_URL);
 		
@@ -41,11 +36,11 @@ public class DownloadFile  extends Auth{
 		if (r.getCode() != HTTP_SUCCESS) 
 			throw new RuntimeException(String.format("Failed to download file: %s, Status: %d, \nReason: %s\n", filePath, r.getCode(), r.getBody()));
 	
-		
+		return r;
 		//System.out.println("MESSAGE: " + readBytes(r.getStream()).toString());
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static Response main(String[] args) throws Exception {
 
 		if( args.length != 1 ) {
 			System.err.println("usage: java DownloadFile <path>");
@@ -56,8 +51,8 @@ public class DownloadFile  extends Auth{
 		
 		var cd = new DownloadFile();
 		
-		cd.execute(filePath);
-		System.out.println("File '" + filePath + "' was downloaded successfuly.");
+		return cd.execute(filePath);
+		//System.out.println("File '" + filePath + "' was downloaded successfuly.");
 	}
 
 }

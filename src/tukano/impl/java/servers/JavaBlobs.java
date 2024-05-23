@@ -13,6 +13,7 @@ import static tukano.impl.java.clients.Clients.ShortsClients;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,10 +22,14 @@ import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import com.github.scribejava.core.model.Response;
 import tukano.api.Blob;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.api.java.ExtendedShorts;
+import tukano.impl.auth.CreateDirectory;
+import tukano.impl.auth.DownloadFile;
+import tukano.impl.auth.UploadFile;
 import tukano.impl.java.clients.ClientFactory;
 import tukano.impl.java.clients.Clients;
 import utils.*;
@@ -32,7 +37,7 @@ import utils.*;
 public class JavaBlobs implements ExtendedBlobs {
 	private static final String ADMIN_TOKEN = Args.valueOf("-token", "");
 	
-	private static final String BLOBS_ROOT_DIR = "blobFiles/";
+	private static final String BLOBS_ROOT_DIR = "blobFiles";
 	
 	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
@@ -44,10 +49,10 @@ public class JavaBlobs implements ExtendedBlobs {
 	public Result<Void> upload(String blobId, byte[] bytes) {
 		Log.info("%%%%%%%%%%%%%%%%%% entrou no upload " + blobId);
 
-		String filePath = BLOBS_ROOT_DIR + blobId;
-		String directoryPath = BLOBS_ROOT_DIR;
+		String filePath = BLOBS_ROOT_DIR + "/" + blobId;
+		String directoryPath = BLOBS_ROOT_DIR + "/";
 
-		try {
+		/*try {
 			Path directory = Paths.get(directoryPath);
 			if (!Files.exists(directory))
 				Files.createDirectories(directory);
@@ -60,6 +65,26 @@ public class JavaBlobs implements ExtendedBlobs {
 
 		} catch (IOException e) {
 			return error(INTERNAL_ERROR);
+		}*/
+
+		try{
+			String[] args = new String[1];
+			args[0] = "/" + BLOBS_ROOT_DIR;
+			CreateDirectory.main(args);
+		} catch (Exception e) {
+			//throw new RuntimeException(e);
+		}
+
+		Log.info("%%%%%%%%%%%%%%%%%%% bytes " + bytes);
+		Log.info("%%%%%%%%%%%%%%%%%%% string" + bytes.toString());
+
+		try{
+			String[] args = new String[2];
+			args[0] = "/" + BLOBS_ROOT_DIR + "/" + blobId;
+			args[1] = new String(bytes, StandardCharsets.UTF_8);
+			UploadFile.main(args);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 
 		Hibernate.getInstance().persistOne(new Blob(blobId, blobId));
@@ -78,15 +103,31 @@ public class JavaBlobs implements ExtendedBlobs {
 
 		byte[] content;
 
-		try{
-			String filePath = BLOBS_ROOT_DIR + blobId;
+		/*try{
+			String filePath = BLOBS_ROOT_DIR + "/" + blobId;
 			Path path = Paths.get(filePath);
 
 			content = Files.readAllBytes(path);
 		}catch (IOException e){
 			return error(INTERNAL_ERROR);
-		}
+		}*/
 
+
+		try{
+			String[] args = new String[1];
+			args[0] = "/" + BLOBS_ROOT_DIR + "/" + blobId;
+			Response res = DownloadFile.main(args);
+
+			if(!res.isSuccessful())
+				return error(INTERNAL_ERROR);
+
+			Log.info("#################### body: " + res.getBody() + " message: " + res.getMessage());
+
+			content = res.getBody().getBytes(StandardCharsets.UTF_8);
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 
 		return Result.ok(content);
 	}

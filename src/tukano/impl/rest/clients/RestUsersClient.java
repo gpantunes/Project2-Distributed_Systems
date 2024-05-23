@@ -61,16 +61,6 @@ public class RestUsersClient extends RestClient implements Users {
 				.get(), new GenericType<List<User>>() {});
 	}
 
-	private Result<Void> _existsUser(String userId) {
-		return super.toJavaResult(
-				target
-				.path(userId)
-				.path("/exists")
-				.request()
-				.get()
-		);
-	}
-
 	@Override
 	public Result<String> createUser(User user) {
 		return super.reTry( () -> _createUser(user));
@@ -95,10 +85,4 @@ public class RestUsersClient extends RestClient implements Users {
 	public Result<List<User>> searchUsers(String pattern) {
 		return super.reTry( () -> _searchUsers(pattern));
 	}
-
-	@Override
-	public Result<Void> existsUser(String userId) {
-		return super.reTry( () -> _existsUser(userId));
-	}
-
 }

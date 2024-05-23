@@ -79,9 +79,4 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 			return list;
 		});
 	}
-
-	@Override
-	public Result<Void> existsUser(String userId) {
-		return null;
-	}
 }

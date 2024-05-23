@@ -42,7 +42,7 @@ public class ClientFactory<T> {
 		/*else if (serverURI.endsWith(GRPC))
 			return grpcClientFunc.apply( serverURI );*/
 		else
-			throw new RuntimeException("Unknown service type..." + serverURI);	
+			throw new RuntimeException("Unknown service type..." + serverURI);
 	}
 	
 	public T get() {

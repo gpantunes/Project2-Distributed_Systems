@@ -1,6 +1,12 @@
 package tukano.impl.discovery;
 
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -39,12 +45,6 @@ public interface Discovery {
 	public static Discovery getInstance() {
 		return DiscoveryImpl.getInstance();
 	}
-
-	void addBlobUris(URI[] uris);
-
-	void updateBlobDistribution(URI serverUri, int value);
-
-	URI getNextServer() throws URISyntaxException;
 }
 
 /**
@@ -66,8 +66,6 @@ class DiscoveryImpl implements Discovery {
 	private static Discovery singleton;
 
 	private Map<String, Set<URI>> uris = new ConcurrentHashMap<>();
-
-	final Map<URI, Integer> blobDistribution = new ConcurrentHashMap<>();
 	
 	synchronized static Discovery getInstance() {
 		if (singleton == null) {
@@ -145,35 +143,5 @@ class DiscoveryImpl implements Discovery {
 				x.printStackTrace();
 			}
 		}).start();
-	}
-
-	@Override
-	public void addBlobUris(URI[] uris){
-		for(int i = 0; i < uris.length; i++){
-			if(!blobDistribution.containsKey(uris[i]))
-				blobDistribution.put(uris[i], 0);
-		}
-	}
-
-	@Override
-	public void updateBlobDistribution(URI serverUri, int value){
-		int totalBlobs = blobDistribution.remove(serverUri);
-
-		blobDistribution.put(serverUri, totalBlobs + value);
-	}
-
-	@Override
-	public URI getNextServer() throws URISyntaxException {
-		URI serverUri = new URI("");
-		int lowestBlobNum = Integer.MAX_VALUE;
-
-		for (Map.Entry<URI, Integer> entry : blobDistribution.entrySet()) {
-			if(entry.getValue() < lowestBlobNum){
-				lowestBlobNum = entry.getValue();
-				serverUri = entry.getKey();
-			}
-		}
-
-		return serverUri;
 	}
 }

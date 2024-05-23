@@ -2,14 +2,11 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Projeto2-SD-3919d3cbc1b08a36b2d93d8ad34181d5185e7e7d" />
         <module name="sd2324-tp1" />
-        <module name="Projeto2-SD" />
       </profile>
     </annotationProcessing>
   </component>

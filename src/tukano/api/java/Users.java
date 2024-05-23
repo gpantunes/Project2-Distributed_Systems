@@ -60,13 +60,5 @@ public interface Users {
 	 * @return OK when the search was successful, regardless of the number of hits (including 0 hits). 
 	 *         BAD_REQUEST - otherwise.
 	 */
-	Result<List<User>> searchUsers(String pattern);
-
-	/**
-	 * Return ok if there is a user with the given userId, NOT_FOUND otherwise.
-	 *
-	 * @param userId
-	 * @return
-	 */
-    Result<Void> existsUser(String userId);
+	Result<List<User>> searchUsers(String pattern);	
 }

@@ -127,15 +127,6 @@ public class RestShortsClient extends RestClient implements ExtendedShorts{
 				.request()
 				.get());
 	}
-
-	public Result<Short> _getShortByBlobId(String blobId) {
-		return super.toJavaResult(
-				target
-				.path(blobId)
-				.path("/blob")
-				.request()
-				.get(), Short.class);
-	}
 		
 	@Override
 	public Result<Short> createShort(String userId, String password) {
@@ -186,10 +177,4 @@ public class RestShortsClient extends RestClient implements ExtendedShorts{
 	public Result<Void> deleteAllShorts(String userId, String password, String token) {
 		return super.reTry( () -> _deleteAllShorts(userId, password, token));
 	}
-
-	@Override
-	public Result<Short> getShortByBlobId(String blobId) {
-		return super.reTry( () -> _getShortByBlobId(blobId));
-	}
-
 }

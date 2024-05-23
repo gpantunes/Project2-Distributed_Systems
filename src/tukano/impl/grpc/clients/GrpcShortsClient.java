@@ -23,7 +23,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	final ShortsGrpc.ShortsBlockingStub stub;
 
-	public GrpcShortsClient(String serverURI) {
+	public GrpcShortsClient(String serverURI) throws Exception {
 		super(serverURI);
 		this.stub = ShortsGrpc.newBlockingStub( super.channel );	
 	}

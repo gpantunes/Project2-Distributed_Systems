@@ -17,7 +17,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
 	final BlobsGrpc.BlobsBlockingStub stub;
 
-	public GrpcBlobsClient(String serverURI) {
+	public GrpcBlobsClient(String serverURI) throws Exception {
 		super(serverURI);
 		this.stub = BlobsGrpc.newBlockingStub( super.channel );
 	}

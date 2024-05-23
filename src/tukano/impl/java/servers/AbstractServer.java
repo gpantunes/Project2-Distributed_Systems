@@ -1,6 +1,7 @@
 package tukano.impl.java.servers;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
 import utils.Args;
@@ -22,7 +23,7 @@ public abstract class AbstractServer {
 		Token.set( Args.valueOf("-token", ""));
 	}
 		
-	abstract protected void start() throws IOException;
+	abstract protected void start() throws IOException, NoSuchAlgorithmException;
 	
 	static {
 		System.setProperty("java.net.preferIPv4Stack", "true");

@@ -16,9 +16,9 @@ import tukano.impl.rest.clients.RestShortsClient;
 import tukano.impl.rest.clients.RestUsersClient;
 
 public class Clients {
-	public static final ClientFactory<Users> UsersClients = new ClientFactory<>(Users.NAME, RestUsersClient::new, GrpcUsersClient::new);
+	public static final ClientFactory<Users> UsersClients = new ClientFactory<>(Users.NAME, RestUsersClient::new/*, GrpcUsersClient::new*/);
 	
-	public static final ClientFactory<ExtendedBlobs> BlobsClients = new ClientFactory<>(Blobs.NAME, RestBlobsClient::new, GrpcBlobsClient::new);
+	public static final ClientFactory<ExtendedBlobs> BlobsClients = new ClientFactory<>(Blobs.NAME, RestBlobsClient::new/*, GrpcBlobsClient::new*/);
 
-	public static final ClientFactory<ExtendedShorts> ShortsClients = new ClientFactory<>(Shorts.NAME, RestShortsClient::new, GrpcShortsClient::new);
+	public static final ClientFactory<ExtendedShorts> ShortsClients = new ClientFactory<>(Shorts.NAME, RestShortsClient::new/*, GrpcShortsClient::new*/);
 }

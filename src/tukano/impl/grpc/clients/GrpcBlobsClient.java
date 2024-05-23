@@ -17,7 +17,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
 	final BlobsGrpc.BlobsBlockingStub stub;
 
-	public GrpcBlobsClient(String serverURI) {
+	public GrpcBlobsClient(String serverURI) throws Exception {
 		super(serverURI);
 		this.stub = BlobsGrpc.newBlockingStub( super.channel );
 	}
@@ -70,11 +70,10 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 	}
 	
 	@Override
-	public Result<Void> delete(String blobId, String token) {
+	public Result<Void> delete(String blobId) {
 		return super.toJavaResult(() -> {
 			stub.delete( DeleteArgs.newBuilder()
 				.setBlobId(blobId)
-				.setToken(token)
 				.build());			
 		});	
 	}

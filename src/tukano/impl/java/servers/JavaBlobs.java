@@ -43,9 +43,9 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
-		Log.info(() -> format("upload : blobId = %s, sha256 = %s\n", blobId, Hex.of(Hash.sha256(bytes))));
+		Log.info(() -> format("######################### upload : blobId = %s, sha256 = %s\n", blobId, Hex.of(Hash.sha256(bytes))));
 
-		/*if (!validBlobId(blobId))
+		if (!validBlobId(blobId))
 			return error(FORBIDDEN);
 
 		var file = toFilePath(blobId);
@@ -59,10 +59,10 @@ public class JavaBlobs implements ExtendedBlobs {
 				return error(CONFLICT);
 
 		}
-		IO.write(file, bytes);*/
+		IO.write(file, bytes);
 
 
-		try {
+		/*try {
 			String[] args = new String[1];
 			args[0] = DROPBOX_BLOBS_DIR;
 			CreateDirectory.main(args);
@@ -77,7 +77,7 @@ public class JavaBlobs implements ExtendedBlobs {
 			UploadFile.main(args);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
-		}
+		}*/
 
 		return ok();
 	}
@@ -88,7 +88,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 		byte[] content;
 
-		try{
+		/*try{
 			String[] args = new String[1];
 			args[0] = "/" + BLOBS_ROOT_DIR + "/" + blobId;
 			Response res = DownloadFile.main(args);
@@ -104,16 +104,16 @@ public class JavaBlobs implements ExtendedBlobs {
 			throw new RuntimeException(e);
 		}
 
-		return ok(content);
+		return ok(content);*/
 
-		/*var file = toFilePath(blobId);
+		var file = toFilePath(blobId);
 		if (file == null)
 			return error(BAD_REQUEST);
 
 		if (file.exists())
 			return ok(IO.read(file));
 		else
-			return error(NOT_FOUND);*/
+			return error(NOT_FOUND);
 	}
 
 	@Override

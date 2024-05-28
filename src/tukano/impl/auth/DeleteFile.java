@@ -17,7 +17,7 @@ public class DeleteFile extends Auth{
 		super();
 	}
 	
-	public void execute( String directoryName ) throws Exception {
+	public Response execute(String directoryName ) throws Exception {
 		
 		var delFolder = new OAuthRequest(Verb.POST, DELETE_FOLDER_V2_URL);
 		delFolder.addHeader(CONTENT_TYPE_HDR, JSON_CONTENT_TYPE);
@@ -29,9 +29,11 @@ public class DeleteFile extends Auth{
 		Response r = service.execute(delFolder);
 		if (r.getCode() != HTTP_SUCCESS) 
 			throw new RuntimeException(String.format("Failed to delete: %s, Status: %d, \nReason: %s\n", directoryName, r.getCode(), r.getBody()));
+
+		return r;
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static Response main(String[] args) throws Exception {
 
 		if( args.length != 1 ) {
 			System.err.println("usage: java Delete <path>");
@@ -41,8 +43,7 @@ public class DeleteFile extends Auth{
 		var path = args[0];
 		var cd = new DeleteFile();
 		
-		cd.execute(path);
-		System.out.println(path + "' deleted successfuly.");
+		return cd.execute(path);
+		//System.out.println(path + "' deleted successfuly.");
 	}
-
 }

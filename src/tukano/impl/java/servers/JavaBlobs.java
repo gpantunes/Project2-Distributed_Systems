@@ -43,7 +43,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
-		Log.info(() -> format("######################### upload : blobId = %s, sha256 = %s\n", blobId, Hex.of(Hash.sha256(bytes))));
+		Log.info("######################### upload : blobId ");
 
 		if (!validBlobId(blobId))
 			return error(FORBIDDEN);
@@ -61,50 +61,12 @@ public class JavaBlobs implements ExtendedBlobs {
 		}
 		IO.write(file, bytes);
 
-
-		/*try {
-			String[] args = new String[1];
-			args[0] = DROPBOX_BLOBS_DIR;
-			CreateDirectory.main(args);
-		} catch (Exception e) {
-			//throw new RuntimeException(e);
-		}
-
-		try {
-			String[] args = new String[2];
-			args[0] = BLOBS_ROOT_DIR + "/" + blobId;
-			args[1] = new String(bytes, StandardCharsets.UTF_8);
-			UploadFile.main(args);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}*/
-
 		return ok();
 	}
 
 	@Override
 	public Result<byte[]> download(String blobId) {
 		Log.info(() -> format("download : blobId = %s\n", blobId));
-
-		byte[] content;
-
-		/*try{
-			String[] args = new String[1];
-			args[0] = "/" + BLOBS_ROOT_DIR + "/" + blobId;
-			Response res = DownloadFile.main(args);
-
-			if(!res.isSuccessful())
-				return error(INTERNAL_ERROR);
-
-			Log.info("#################### body: " + res.getBody() + " message: " + res.getMessage());
-
-			content = res.getBody().getBytes(StandardCharsets.UTF_8);
-
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		return ok(content);*/
 
 		var file = toFilePath(blobId);
 		if (file == null)

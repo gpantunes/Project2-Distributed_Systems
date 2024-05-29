@@ -5,17 +5,22 @@ import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.api.rest.RestExtendedBlobs;
 import tukano.impl.java.servers.JavaBlobs;
 
+import java.util.logging.Logger;
+
 @Singleton
 public class RestBlobsResource extends RestResource implements RestExtendedBlobs {
 
+	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 	final ExtendedBlobs impl;
 	
 	public RestBlobsResource() {
+		Log.info("%%%%%%%%%%%%%%%%%% construiu impl com JavaBlobs");
 		this.impl = new JavaBlobs();
 	}
 	
 	@Override
 	public void upload(String blobId, byte[] bytes) {
+		Log.info("%%%%%%%%%%%%%%%% chamou upload no JavaBlobs");
 		super.resultOrThrow( impl.upload(blobId, bytes));
 	}
 

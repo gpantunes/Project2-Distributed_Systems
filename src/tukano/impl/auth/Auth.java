@@ -13,7 +13,6 @@ public abstract class Auth {
     public static final String apiSecret = "zexdhatp055eldc";
     public static final String accessTokenStr = "sl.B2M8Xig7X_jS7-D33e8kOnCUDXrkOngQWBN6g3p1peRQLwYJTxGFPx2NEq3GjQtDkR5ztH8_TmmNiwub4exCauKZ9az833zRDMJ-rui9G7-H4jCRRMOlkYbqhxdFlUMjCaPX-bUvXatJ4RBMdT-fCPs";
 
-
     public final Gson json;
     public final OAuth20Service service;
     public final OAuth2AccessToken accessToken;

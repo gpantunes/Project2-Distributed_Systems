@@ -7,6 +7,9 @@ import io.grpc.stub.StreamObserver;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.grpc.generated_java.BlobsGrpc;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.*;
+import tukano.impl.grpc.generated_java.BlobsProtoBuf.DownloadResult;
+import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadArgs;
+import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadResult;
 import tukano.impl.java.servers.JavaBlobs;
 
 public class GrpcBlobsServerStub extends AbstractGrpcStub implements BlobsGrpc.AsyncService {

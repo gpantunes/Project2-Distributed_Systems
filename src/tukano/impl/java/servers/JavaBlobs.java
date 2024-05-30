@@ -33,7 +33,7 @@ import utils.IO;
 import utils.Token;
 
 public class JavaBlobs implements ExtendedBlobs {
-	
+
 	private static final String BLOBS_ROOT_DIR = "/tmp/blobs/";
 
 	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());

@@ -14,6 +14,7 @@ import static utils.DB.getOne;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -29,10 +30,14 @@ import tukano.api.Short;
 import tukano.api.User;
 import tukano.api.java.Blobs;
 import tukano.api.java.Result;
+import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.discovery.Discovery;
+import tukano.impl.java.clients.ClientFactory;
+import tukano.impl.java.clients.Clients;
 import tukano.impl.java.servers.data.Following;
 import tukano.impl.java.servers.data.Likes;
+import tukano.impl.rest.clients.RestBlobsClient;
 import utils.DB;
 import utils.Token;
 
@@ -126,8 +131,11 @@ public class JavaShorts implements ExtendedShorts {
 		var blobUrl = generateBlobUrl(shortId);
 		vid.setBlobUrl(blobUrl);
 
-		Log.info("################### urls " + blobUrl);
+		Result update = verifyConsistency(vid.getBlobUrl(), blobUrl);
+		if(!update.isOK())
+			return error(INTERNAL_ERROR);
 
+		DB.updateOne(vid);
 		return ok(vid);
 	}
 
@@ -281,32 +289,10 @@ public class JavaShorts implements ExtendedShorts {
 	}
 
 
-	
-	private List<String> getLeastLoadedBlobServerURI() {
-		/*try {
-			var servers = blobCountCache.get(BLOB_COUNT);
-			
-			var	leastLoadedServer = servers.entrySet()
-					.stream()
-					.sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue()))
-					.findFirst();
-			
-			if( leastLoadedServer.isPresent() )  {
-				var uri = leastLoadedServer.get().getKey();
-				servers.compute( uri, (k, v) -> v + 1L);				
-				return uri;
-			}
-		} catch( Exception x ) {
-			x.printStackTrace();
-		}
-		return "?";*/
-
+	private List<String> getAllBlobServerURI() {
 		List<String> uriList = new ArrayList<>();
 		try {
 			var servers = blobCountCache.get(BLOB_COUNT);
-
-			var activeServers = servers.entrySet();
-
 
 			for(var server : servers.entrySet()){
 				var uri = server.getKey();
@@ -318,10 +304,9 @@ public class JavaShorts implements ExtendedShorts {
 		}
 
 		return uriList;
-
 	}
 	
-	static record BlobServerCount(String baseURI, Long count) {};
+	record BlobServerCount(String baseURI, Long count) {};
 	
 	private long totalShortsInDatabase() {
 		var hits = DB.sql("SELECT count('*') FROM Short", Long.class);
@@ -347,6 +332,40 @@ public class JavaShorts implements ExtendedShorts {
 		return concat.toString();
 	}
 
+
+	private Result verifyConsistency(String originalUrl, String workingUrl) {
+		String[] original = originalUrl.split("\\|");
+		String[] working = workingUrl.split("\\|");
+		String uriToDownload = "";
+		List<String> urisToUpdate = new ArrayList<>();
+
+		for(String url : working){
+			boolean needUpdate = true;
+			for(String check : original){
+				if(url.equals(check)) {
+					needUpdate = false;
+					uriToDownload = check;
+					break;
+				}
+			}
+			if(needUpdate){
+				urisToUpdate.add(url);
+			}
+		}
+
+		String[] uriParts = uriToDownload.split("/blobs/");
+		String uri = uriParts[0];
+		var data = BlobsClients.get(URI.create(uri)).download(uriParts[1]);
+
+		if(data.isOK()){
+			byte[] blob = data.value();
+
+			for(String uriToUpdate : urisToUpdate){
+				BlobsClients.get(URI.create(uriToUpdate)).upload(uriParts[1], blob);
+			}
+		}
+		return ok();
+	}
 
 }
 

@@ -20,7 +20,7 @@ public class ClientFactory<T> {
 
 	private final String serviceName;
 	private final Function<String, T> restClientFunc;
-	//private final Function<String, T> grpcClientFunc;
+	private final Function<String, T> grpcClientFunc;
 	
 	private LoadingCache<URI, T> clients = CacheBuilder.newBuilder()
 			.build(new CacheLoader<>() {
@@ -30,17 +30,17 @@ public class ClientFactory<T> {
 				}
 			});
 	
-	ClientFactory( String serviceName, Function<String, T> restClientFunc/*, Function<String, T> grpcClientFunc*/) {
+	ClientFactory( String serviceName, Function<String, T> restClientFunc, Function<String, T> grpcClientFunc) {
 		this.restClientFunc = restClientFunc;
-		//this.grpcClientFunc = grpcClientFunc;
+		this.grpcClientFunc = grpcClientFunc;
 		this.serviceName = serviceName;
 	}
 	
 	private T newClient( String serverURI ) {
 		if (serverURI.endsWith(REST))
 			return restClientFunc.apply( serverURI );
-		/*else if (serverURI.endsWith(GRPC))
-			return grpcClientFunc.apply( serverURI );*/
+		else if (serverURI.endsWith(GRPC))
+			return grpcClientFunc.apply( serverURI );
 		else
 			throw new RuntimeException("Unknown service type..." + serverURI);
 	}

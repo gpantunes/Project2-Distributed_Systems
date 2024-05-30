@@ -61,7 +61,7 @@ public class ListDirectory  extends Auth{
 		return directoryContents;
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static List<String> main(String[] args) throws Exception {
 		if (args.length != 1) {
 			System.err.println("usage: java ListDirectory <dir>");
 			System.exit(0);
@@ -69,10 +69,13 @@ public class ListDirectory  extends Auth{
 
 		var directory = args[0];
 		var ld = new ListDirectory();
+		List<String> fileList = new ArrayList<>();
 
 		System.out.println("Directory " + directory + ":");
 		for (String entry : ld.execute(directory))
-			System.out.println(entry);
+			fileList.add(entry);
+
+		return fileList;
 	}
 
 }

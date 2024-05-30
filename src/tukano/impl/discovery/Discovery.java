@@ -7,12 +7,15 @@ import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.URI;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.chrono.ChronoLocalDateTime;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import java.util.Map.Entry;
 
+import tukano.api.java.Blobs;
 import utils.Sleep;
 
 /**
@@ -66,7 +69,8 @@ class DiscoveryImpl implements Discovery {
 	private static Discovery singleton;
 
 	private Map<String, Set<URI>> uris = new ConcurrentHashMap<>();
-	
+	Map<URI, LocalDateTime> uriCheck = new ConcurrentHashMap<URI, LocalDateTime>();
+
 	synchronized static Discovery getInstance() {
 		if (singleton == null) {
 			singleton = new DiscoveryImpl();
@@ -106,7 +110,17 @@ class DiscoveryImpl implements Discovery {
 	@Override
 	public URI[] knownUrisOf(String serviceName, int minEntries) {
 		while(true) {
+			if(serviceName.equals(Blobs.NAME)){
+				uris.remove(Blobs.NAME);
+				Set<URI> validUris = new HashSet<>();
+				for(URI validUri : uriCheck.keySet()){
+					validUris.add(validUri);
+				}
+				uris.put(Blobs.NAME, validUris);
+			}
+
 			var res = uris.getOrDefault(serviceName, Collections.emptySet());
+
 			if( res.size() >= minEntries )
 				return res.toArray( new URI[res.size()]);
 			else
@@ -118,7 +132,10 @@ class DiscoveryImpl implements Discovery {
 	private void startListener() {
 		Log.info(String.format("Starting discovery on multicast group: %s, port: %d\n", DISCOVERY_ADDR.getAddress(), DISCOVERY_ADDR.getPort()));
 
+		checkServers();
+
 		new Thread(() -> {
+
 			try (var ms = new MulticastSocket(DISCOVERY_ADDR.getPort())) {
 				ms.joinGroup(DISCOVERY_ADDR, NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
 				for (;;) {
@@ -133,6 +150,12 @@ class DiscoveryImpl implements Discovery {
 							var serviceName = parts[0];
 							var uri = URI.create(parts[1]);
 							uris.computeIfAbsent(serviceName, (k) -> ConcurrentHashMap.newKeySet()).add( uri );
+							if(serviceName.equals(Blobs.NAME)){
+								try{
+									uriCheck.remove(uri);
+								}catch (Exception e){}
+								uriCheck.put(uri, LocalDateTime.now());
+							}
 						}
 
 					} catch (Exception x) {
@@ -141,6 +164,20 @@ class DiscoveryImpl implements Discovery {
 				}
 			} catch (Exception x) {
 				x.printStackTrace();
+			}
+		}).start();
+	}
+
+
+	private void checkServers(){
+
+		new Thread(() -> {
+			while(true){
+				for(Entry uri : uriCheck.entrySet()){
+					if(LocalDateTime.now().minusSeconds(10).isAfter((ChronoLocalDateTime<?>) uri.getValue())){
+						uriCheck.remove(uri.getKey());
+					}
+				}
 			}
 		}).start();
 	}

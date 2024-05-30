@@ -1,20 +1,19 @@
 package tukano.impl.java.servers;
 
 import static java.lang.String.format;
+import static tukano.api.java.Result.ErrorCode.*;
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.errorOrResult;
 import static tukano.api.java.Result.errorOrValue;
 import static tukano.api.java.Result.errorOrVoid;
 import static tukano.api.java.Result.ok;
-import static tukano.api.java.Result.ErrorCode.BAD_REQUEST;
-import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
-import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
-import static tukano.api.java.Result.ErrorCode.TIMEOUT;
 import static tukano.impl.java.clients.Clients.BlobsClients;
 import static tukano.impl.java.clients.Clients.UsersClients;
 import static utils.DB.getOne;
 
+import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -31,6 +30,7 @@ import tukano.api.User;
 import tukano.api.java.Blobs;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedShorts;
+import tukano.impl.discovery.Discovery;
 import tukano.impl.java.servers.data.Following;
 import tukano.impl.java.servers.data.Likes;
 import utils.DB;
@@ -92,7 +92,6 @@ public class JavaShorts implements ExtendedShorts {
 						 candidates.putIfAbsent( uri.toString(), 0L);
 
 					return candidates;
-
 				}
 			});
 	
@@ -103,7 +102,8 @@ public class JavaShorts implements ExtendedShorts {
 		return errorOrResult( okUser(userId, password), user -> {
 			
 			var shortId = format("%s-%d", userId, counter.incrementAndGet());
-			var blobUrl = format("%s/%s/%s", getLeastLoadedBlobServerURI(), Blobs.NAME, shortId); 
+
+			var blobUrl = generateBlobUrl(shortId);
 			var shrt = new Short(shortId, userId, blobUrl);
 
 			return DB.insertOne(shrt);
@@ -117,10 +117,20 @@ public class JavaShorts implements ExtendedShorts {
 		if( shortId == null )
 			return error(BAD_REQUEST);
 
-		return shortFromCache(shortId);
+		var res = shortFromCache(shortId);
+		if(!res.isOK())
+			return error(NOT_FOUND);
+
+		Short vid = res.value();
+
+		var blobUrl = generateBlobUrl(shortId);
+		vid.setBlobUrl(blobUrl);
+
+		Log.info("################### urls " + blobUrl);
+
+		return ok(vid);
 	}
 
-	
 	@Override
 	public Result<Void> deleteShort(String shortId, String password) {
 		Log.info(() -> format("deleteShort : shortId = %s, pwd = %s\n", shortId, password));
@@ -272,8 +282,8 @@ public class JavaShorts implements ExtendedShorts {
 
 
 	
-	private String getLeastLoadedBlobServerURI() {
-		try {
+	private List<String> getLeastLoadedBlobServerURI() {
+		/*try {
 			var servers = blobCountCache.get(BLOB_COUNT);
 			
 			var	leastLoadedServer = servers.entrySet()
@@ -289,7 +299,26 @@ public class JavaShorts implements ExtendedShorts {
 		} catch( Exception x ) {
 			x.printStackTrace();
 		}
-		return "?";
+		return "?";*/
+
+		List<String> uriList = new ArrayList<>();
+		try {
+			var servers = blobCountCache.get(BLOB_COUNT);
+
+			var activeServers = servers.entrySet();
+
+
+			for(var server : servers.entrySet()){
+				var uri = server.getKey();
+				uriList.add(uri);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return uriList;
+
 	}
 	
 	static record BlobServerCount(String baseURI, Long count) {};
@@ -299,8 +328,25 @@ public class JavaShorts implements ExtendedShorts {
 		return 1L + (hits.isEmpty() ? 0L : hits.get(0));
 	}
 
-	
-	
-	
+
+	private String generateBlobUrl(String shortId) {
+		StringBuilder concat = new StringBuilder();
+
+		List<String> uriList = new ArrayList<>();
+		var uris = Discovery.getInstance().knownUrisOf("blobs", 0);
+		for(URI uri : uris){
+			uriList.add(uri.toString());
+		}
+
+		for(int i = 0; i < uriList.size(); i++){
+			if(i < uriList.size()-1)
+				concat.append(format("%s/%s/%s|", uriList.get(i), Blobs.NAME, shortId));
+			else concat.append(format("%s/%s/%s", uriList.get(i), Blobs.NAME, shortId));
+		}
+
+		return concat.toString();
+	}
+
+
 }
 

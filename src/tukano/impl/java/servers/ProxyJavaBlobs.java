@@ -8,6 +8,7 @@ import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
 import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
 import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
 import static tukano.impl.java.clients.Clients.ShortsClients;
+import static tukano.impl.rest.servers.AbstractRestServer.stateless;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,10 +25,7 @@ import java.util.logging.Logger;
 import com.github.scribejava.core.model.Response;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
-import tukano.impl.auth.CreateDirectory;
-import tukano.impl.auth.DeleteFile;
-import tukano.impl.auth.DownloadFile;
-import tukano.impl.auth.UploadFile;
+import tukano.impl.auth.*;
 import tukano.impl.java.clients.Clients;
 import utils.IO;
 import utils.Token;
@@ -42,14 +40,22 @@ public class ProxyJavaBlobs implements ExtendedBlobs {
 
     @Override
     public Result<Void> upload(String blobId, byte[] bytes) {
-        Log.info("######################### upload no proxy");
+        Log.info(() -> format("download : blobId = %s\n", blobId));
 
         createDir(blobId);
         var parts = blobId.split("-");
 
 		try {
-			String[] args = new String[2];
-			args[0] = DROPBOX_BLOBS_DIR + "/" + parts[0] + "/" + parts[1];
+            if(checkFile(blobId)){
+                if(download(blobId).toString().equals(bytes.toString()))
+                    return ok();
+                else if(stateless){
+                    delete(blobId, Token.get());
+                } else return error(INTERNAL_ERROR);
+            }
+
+            String[] args = new String[2];
+            args[0] = DROPBOX_BLOBS_DIR + "/" + parts[0] + "/" + parts[1];
 			args[1] = new String(bytes, StandardCharsets.UTF_8);
 			UploadFile.main(args);
 		} catch (Exception e) {
@@ -184,4 +190,22 @@ public class ProxyJavaBlobs implements ExtendedBlobs {
 
         return res;
     }
+
+    private boolean checkFile(String blobId) throws Exception {
+        var parts = blobId.split("-");
+        if (parts.length != 2)
+            return false;
+
+        String[] args = new String[1];
+        args[0] = DROPBOX_BLOBS_DIR + "/" + parts[0];
+
+        List<String> fileList = ListDirectory.main(args);
+        for(String file : fileList){
+            if(file.equals(parts[1]))
+                return true;
+        }
+
+        return false;
+    }
+
 }

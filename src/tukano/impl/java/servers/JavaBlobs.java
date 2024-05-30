@@ -35,15 +35,14 @@ import utils.Token;
 public class JavaBlobs implements ExtendedBlobs {
 	
 	private static final String BLOBS_ROOT_DIR = "/tmp/blobs/";
-	private static final String DROPBOX_BLOBS_DIR = "/blobFiles";
-	
+
 	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
 	private static final int CHUNK_SIZE = 4096;
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
-		Log.info("######################### upload : blobId ");
+		Log.info(() -> format("download : blobId = %s\n", blobId));
 
 		if (!validBlobId(blobId))
 			return error(FORBIDDEN);

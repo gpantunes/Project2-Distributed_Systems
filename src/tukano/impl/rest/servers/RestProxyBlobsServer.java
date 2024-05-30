@@ -1,6 +1,7 @@
 package tukano.impl.rest.servers;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import org.glassfish.jersey.server.ResourceConfig;
@@ -8,6 +9,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import tukano.api.java.Blobs;
 import tukano.impl.auth.CreateDirectory;
 import tukano.impl.auth.DeleteFile;
+import tukano.impl.java.servers.JavaBlobs;
 import tukano.impl.java.servers.ProxyJavaBlobs;
 import tukano.impl.rest.servers.utils.CustomLoggingFilter;
 import tukano.impl.rest.servers.utils.GenericExceptionMapper;
@@ -25,6 +27,7 @@ public class RestProxyBlobsServer extends AbstractRestServer {
 
     @Override
     void registerResources(ResourceConfig config) {
+        config.property("stateless", stateless);
         config.register( RestProxyBlobsResource.class );
         config.register(new GenericExceptionMapper());
         config.register(new CustomLoggingFilter());
@@ -34,20 +37,27 @@ public class RestProxyBlobsServer extends AbstractRestServer {
         Args.use(args);
         new RestProxyBlobsServer(Args.valueOf("-port", PORT)).start();
 
-        try {
+        Logger Log = Logger.getLogger(JavaBlobs.class.getName());
+
+        stateless = Boolean.parseBoolean(args[0]);
+        Log.info("############### stateless " + stateless);
+
+        if(stateless == false){
             String[] dropBoxArgs = new String[1];
             dropBoxArgs[0] = ProxyJavaBlobs.DROPBOX_BLOBS_DIR;
-            DeleteFile.main(dropBoxArgs);
-        } catch (Exception e) {
-            //throw new RuntimeException(e);
+
+            try {
+                DeleteFile.main(dropBoxArgs);
+            } catch (Exception e) {
+                //throw new RuntimeException(e);
+            }
+
+            try {
+                CreateDirectory.main(dropBoxArgs);
+            } catch (Exception e) {
+                //throw new RuntimeException(e);
+            }
         }
 
-        try {
-            String[] dropBoxArgs = new String[1];
-            dropBoxArgs[0] = ProxyJavaBlobs.DROPBOX_BLOBS_DIR;
-            CreateDirectory.main(dropBoxArgs);
-        } catch (Exception e) {
-            //throw new RuntimeException(e);
-        }
     }
 }

@@ -1,20 +1,20 @@
 package tukano.impl.java.servers;
 
 import static java.lang.String.format;
+import static tukano.api.java.Result.ErrorCode.*;
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.errorOrResult;
 import static tukano.api.java.Result.errorOrValue;
 import static tukano.api.java.Result.errorOrVoid;
 import static tukano.api.java.Result.ok;
-import static tukano.api.java.Result.ErrorCode.BAD_REQUEST;
-import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
-import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
-import static tukano.api.java.Result.ErrorCode.TIMEOUT;
 import static tukano.impl.java.clients.Clients.BlobsClients;
 import static tukano.impl.java.clients.Clients.UsersClients;
 import static utils.DB.getOne;
 
+import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -30,9 +30,14 @@ import tukano.api.Short;
 import tukano.api.User;
 import tukano.api.java.Blobs;
 import tukano.api.java.Result;
+import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.api.java.ExtendedShorts;
+import tukano.impl.discovery.Discovery;
+import tukano.impl.java.clients.ClientFactory;
+import tukano.impl.java.clients.Clients;
 import tukano.impl.java.servers.data.Following;
 import tukano.impl.java.servers.data.Likes;
+import tukano.impl.rest.clients.RestBlobsClient;
 import utils.DB;
 import utils.Token;
 
@@ -92,7 +97,6 @@ public class JavaShorts implements ExtendedShorts {
 						 candidates.putIfAbsent( uri.toString(), 0L);
 
 					return candidates;
-
 				}
 			});
 	
@@ -103,7 +107,8 @@ public class JavaShorts implements ExtendedShorts {
 		return errorOrResult( okUser(userId, password), user -> {
 			
 			var shortId = format("%s-%d", userId, counter.incrementAndGet());
-			var blobUrl = format("%s/%s/%s", getLeastLoadedBlobServerURI(), Blobs.NAME, shortId); 
+
+			var blobUrl = generateBlobUrl(shortId);
 			var shrt = new Short(shortId, userId, blobUrl);
 
 			return DB.insertOne(shrt);
@@ -117,10 +122,23 @@ public class JavaShorts implements ExtendedShorts {
 		if( shortId == null )
 			return error(BAD_REQUEST);
 
-		return shortFromCache(shortId);
+		var res = shortFromCache(shortId);
+		if(!res.isOK())
+			return error(NOT_FOUND);
+
+		Short vid = res.value();
+
+		var blobUrl = generateBlobUrl(shortId);
+		vid.setBlobUrl(blobUrl);
+
+		Result update = verifyConsistency(vid.getBlobUrl(), blobUrl);
+		if(!update.isOK())
+			return error(INTERNAL_ERROR);
+
+		DB.updateOne(vid);
+		return ok(vid);
 	}
 
-	
 	@Override
 	public Result<Void> deleteShort(String shortId, String password) {
 		Log.info(() -> format("deleteShort : shortId = %s, pwd = %s\n", shortId, password));
@@ -198,6 +216,8 @@ public class JavaShorts implements ExtendedShorts {
 	public Result<List<String>> getFeed(String userId, String password) {
 		Log.info(() -> format("getFeed : userId = %s, pwd = %s\n", userId, password));
 
+		//throw new RuntimeException();
+
 		final var QUERY_FMT = """
 				SELECT s.shortId, s.timestamp FROM Short s WHERE	s.ownerId = '%s'				
 				UNION			
@@ -206,7 +226,7 @@ public class JavaShorts implements ExtendedShorts {
 						f.followee = s.ownerId AND f.follower = '%s' 
 				ORDER BY s.timestamp DESC""";
 
-		return errorOrValue( okUser( userId, password), DB.sql( format(QUERY_FMT, userId, userId), String.class));		
+		return errorOrValue( okUser( userId, password), DB.sql( format(QUERY_FMT, userId, userId), String.class));
 	}
 		
 	protected Result<User> okUser( String userId, String pwd) {
@@ -269,36 +289,83 @@ public class JavaShorts implements ExtendedShorts {
 	}
 
 
-	
-	private String getLeastLoadedBlobServerURI() {
+	private List<String> getAllBlobServerURI() {
+		List<String> uriList = new ArrayList<>();
 		try {
 			var servers = blobCountCache.get(BLOB_COUNT);
-			
-			var	leastLoadedServer = servers.entrySet()
-					.stream()
-					.sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue()))
-					.findFirst();
-			
-			if( leastLoadedServer.isPresent() )  {
-				var uri = leastLoadedServer.get().getKey();
-				servers.compute( uri, (k, v) -> v + 1L);				
-				return uri;
+
+			for(var server : servers.entrySet()){
+				var uri = server.getKey();
+				uriList.add(uri);
 			}
-		} catch( Exception x ) {
-			x.printStackTrace();
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		return "?";
+
+		return uriList;
 	}
 	
-	static record BlobServerCount(String baseURI, Long count) {};
+	record BlobServerCount(String baseURI, Long count) {};
 	
 	private long totalShortsInDatabase() {
 		var hits = DB.sql("SELECT count('*') FROM Short", Long.class);
 		return 1L + (hits.isEmpty() ? 0L : hits.get(0));
 	}
 
-	
-	
-	
+
+	private String generateBlobUrl(String shortId) {
+		StringBuilder concat = new StringBuilder();
+
+		List<String> uriList = new ArrayList<>();
+		var uris = Discovery.getInstance().knownUrisOf("blobs", 0);
+		for(URI uri : uris){
+			uriList.add(uri.toString());
+		}
+
+		for(int i = 0; i < uriList.size(); i++){
+			if(i < uriList.size()-1)
+				concat.append(format("%s/%s/%s|", uriList.get(i), Blobs.NAME, shortId));
+			else concat.append(format("%s/%s/%s", uriList.get(i), Blobs.NAME, shortId));
+		}
+
+		return concat.toString();
+	}
+
+
+	private Result verifyConsistency(String originalUrl, String workingUrl) {
+		String[] original = originalUrl.split("\\|");
+		String[] working = workingUrl.split("\\|");
+		String uriToDownload = "";
+		List<String> urisToUpdate = new ArrayList<>();
+
+		for(String url : working){
+			boolean needUpdate = true;
+			for(String check : original){
+				if(url.equals(check)) {
+					needUpdate = false;
+					uriToDownload = check;
+					break;
+				}
+			}
+			if(needUpdate){
+				urisToUpdate.add(url);
+			}
+		}
+
+		String[] uriParts = uriToDownload.split("/blobs/");
+		String uri = uriParts[0];
+		var data = BlobsClients.get(URI.create(uri)).download(uriParts[1]);
+
+		if(data.isOK()){
+			byte[] blob = data.value();
+
+			for(String uriToUpdate : urisToUpdate){
+				BlobsClients.get(URI.create(uriToUpdate)).upload(uriParts[1], blob);
+			}
+		}
+		return ok();
+	}
+
 }
 

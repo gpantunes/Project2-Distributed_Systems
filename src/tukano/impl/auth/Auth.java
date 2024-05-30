@@ -11,7 +11,7 @@ public abstract class Auth {
 
     public static final String apiKey = "xppjq79125sypnf";
     public static final String apiSecret = "zexdhatp055eldc";
-    public static final String accessTokenStr = "sl.B1xjGWIvgOM2Z9AED3ktQ0E6ebqT6gDhuNehCJ_oHFmrLkSi4IMAWVrA4JhgdQOC8vtazmwx8Fm110zjKYfN7WzC1chVmi7fk1_-HItwWo7uvp5-hl4h2IodSfFtBY_mAcfcmFGs1D7K4Xass_9S9fw";
+    public static final String accessTokenStr = "sl.B2M8Xig7X_jS7-D33e8kOnCUDXrkOngQWBN6g3p1peRQLwYJTxGFPx2NEq3GjQtDkR5ztH8_TmmNiwub4exCauKZ9az833zRDMJ-rui9G7-H4jCRRMOlkYbqhxdFlUMjCaPX-bUvXatJ4RBMdT-fCPs";
 
 
     public final Gson json;

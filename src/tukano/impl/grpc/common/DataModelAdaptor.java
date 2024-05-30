@@ -2,8 +2,8 @@ package tukano.impl.grpc.common;
 
 import tukano.api.Short;
 import tukano.api.User;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.GrpcShort;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.GrpcUser;
+import tukano.impl.grpc.generated_java.ShortsProtoBuf.*;
+import tukano.impl.grpc.generated_java.UsersProtoBuf.*;
 
 public class DataModelAdaptor {
 
@@ -15,7 +15,7 @@ public class DataModelAdaptor {
 				emptyStringToNull(from.getDisplayName()));
 	}
 
-	public static GrpcUser User_to_GrpcUser( User from )  {
+	public static GrpcUser User_to_GrpcUser(User from )  {
 		return GrpcUser.newBuilder()
 				.setUserId( from.getUserId())
 				.setPassword( from.getPwd())
@@ -28,7 +28,7 @@ public class DataModelAdaptor {
 		return new Short( from.getShortId(), from.getOwnerId(), from.getBlobUrl(), from.getTimestamp(), from.getTotalLikes() );
 	}
 
-	public static GrpcShort Short_to_GrpcShort( Short from )  {
+	public static GrpcShort Short_to_GrpcShort(Short from )  {
 		return GrpcShort.newBuilder()
 				.setShortId( from.getShortId() )
 				.setOwnerId( from.getOwnerId() )

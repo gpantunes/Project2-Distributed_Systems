@@ -23,12 +23,12 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	final ShortsGrpc.ShortsBlockingStub stub;
 
-	public GrpcShortsClient(String serverURI) throws Exception {
+	public GrpcShortsClient(String serverURI) {
 		super(serverURI);
-		this.stub = ShortsGrpc.newBlockingStub( super.channel );	
+		this.stub = ShortsGrpc.newBlockingStub( super.channel );
 	}
 
-	
+
 	@Override
 	public Result<Short> createShort(String userId, String password) {
 		return super.toJavaResult(() -> {
@@ -66,7 +66,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 			var res = stub.getShorts(GetShortsArgs.newBuilder()
 					.setUserId( userId )
 					.build());
-			
+
 			return res.getShortIdList();
 		});
 	}
@@ -90,11 +90,11 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 					.setUserId( userId )
 					.setPassword( password )
 					.build());
-			
+
 			return res.getUserIdList();
 		});
 	}
-	
+
 	@Override
 	public Result<Void> like(String shortId, String userId, boolean isLiked, String password) {
 		return super.toJavaResult(() -> {
@@ -114,7 +114,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 					.setShortId( shortId )
 					.setPassword( password )
 					.build());
-			
+
 			return res.getUserIdList();
 		});
 	}
@@ -126,7 +126,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 					.setUserId( userId )
 					.setPassword( password )
 					.build());
-			
+
 			return res.getShortIdList();
 		});
 	}
@@ -134,13 +134,13 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 	@Override
 	public Result<Void> deleteAllShorts(String userId, String password, String token) {
 		return super.toJavaResult(() -> {
-			stub.deleteAllShorts( 
+			stub.deleteAllShorts(
 					DeleteAllShortsArgs.newBuilder()
-					.setUserId(userId)
-					.setPassword(password)
-					.setToken(token)
-					.build());
+							.setUserId(userId)
+							.setPassword(password)
+							.setToken(token)
+							.build());
 		});
 	}
-	
+
 }

@@ -1,6 +1,5 @@
 package tukano.impl.grpc.servers;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import tukano.api.java.Blobs;

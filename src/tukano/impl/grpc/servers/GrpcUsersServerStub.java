@@ -7,29 +7,26 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
 import tukano.api.java.Users;
 import tukano.impl.grpc.generated_java.UsersGrpc;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.CreateUserArgs;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.CreateUserResult;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.DeleteUserArgs;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.DeleteUserResult;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.GetUserArgs;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.GetUserResult;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.GrpcUser;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.SearchUserArgs;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.UpdateUserArgs;
-import tukano.impl.grpc.generated_java.UsersProtoBuf.UpdateUserResult;
+import tukano.impl.grpc.generated_java.UsersProtoBuf.*;
 import tukano.impl.java.servers.JavaUsers;
+
+import java.util.logging.Logger;
 
 public class GrpcUsersServerStub extends AbstractGrpcStub implements UsersGrpc.AsyncService {
 
 	Users impl = new JavaUsers();
+	private static Logger Log = Logger.getLogger(GrpcUsersServer.class.getName());
+
 
 	@Override
 	public final ServerServiceDefinition bindService() {
+		Log.info("%%%%%%%%%%%%%%%%%% deu bind do stub de users");
 		return UsersGrpc.bindService(this);
 	}
 
 	@Override
 	public void createUser(CreateUserArgs request, StreamObserver<CreateUserResult> responseObserver) {
+		Log.info("##################### enrou no grpc create user");
 		var res = impl.createUser(GrpcUser_to_User(request.getUser()));
 		if (!res.isOK())
 			responseObserver.onError(errorCodeToStatus(res.error()));

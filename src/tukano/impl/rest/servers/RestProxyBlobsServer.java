@@ -27,6 +27,7 @@ public class RestProxyBlobsServer extends AbstractRestServer {
 
     @Override
     void registerResources(ResourceConfig config) {
+        config.property("stateless", stateless);
         config.register( RestProxyBlobsResource.class );
         config.register(new GenericExceptionMapper());
         config.register(new CustomLoggingFilter());
@@ -38,24 +39,25 @@ public class RestProxyBlobsServer extends AbstractRestServer {
 
         Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
-        Log.info("%%%%%%%%%%%%%%%% args " + Arrays.stream(args));
-
-        var stateless = args[1];
+        stateless = Boolean.parseBoolean(args[0]);
         Log.info("############### stateless " + stateless);
 
-        String[] dropBoxArgs = new String[1];
-        dropBoxArgs[0] = ProxyJavaBlobs.DROPBOX_BLOBS_DIR;
+        if(stateless == false){
+            String[] dropBoxArgs = new String[1];
+            dropBoxArgs[0] = ProxyJavaBlobs.DROPBOX_BLOBS_DIR;
 
-        try {
-            DeleteFile.main(dropBoxArgs);
-        } catch (Exception e) {
-            //throw new RuntimeException(e);
+            try {
+                DeleteFile.main(dropBoxArgs);
+            } catch (Exception e) {
+                //throw new RuntimeException(e);
+            }
+
+            try {
+                CreateDirectory.main(dropBoxArgs);
+            } catch (Exception e) {
+                //throw new RuntimeException(e);
+            }
         }
 
-        try {
-            CreateDirectory.main(dropBoxArgs);
-        } catch (Exception e) {
-            //throw new RuntimeException(e);
-        }
     }
 }

@@ -42,7 +42,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
-		Log.info("######################### upload : blobId ");
+		Log.info(() -> format("download : blobId = %s\n", blobId));
 
 		if (!validBlobId(blobId))
 			return error(FORBIDDEN);

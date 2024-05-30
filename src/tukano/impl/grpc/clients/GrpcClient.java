@@ -23,26 +23,32 @@ import javax.net.ssl.TrustManagerFactory;
 public class GrpcClient {
 
 	final protected URI serverURI;
-	final protected Channel channel;
+	protected Channel channel;
 
-	protected GrpcClient(String serverUrl) throws Exception {
+	protected GrpcClient(String serverUrl) {
 		this.serverURI = URI.create(serverUrl);
 
-		var trustStore = System.getProperty("javax.net.ssl.trustStore");
-		var trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
+		try {
+			var trustStore = System.getProperty("javax.net.ssl.trustStore");
+			var trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
 
-		var keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-		try (var in = new FileInputStream(trustStore)) {
-			keystore.load(in, trustStorePassword.toCharArray());
+			var keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+			try (var in = new FileInputStream(trustStore)) {
+				keystore.load(in, trustStorePassword.toCharArray());
+			}
+
+			var trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			trustManagerFactory.init(keystore);
+
+			var scb = SslContextBuilder.forClient().trustManager(trustManagerFactory);
+			var sslContext = GrpcSslContexts.configure( scb ).build();
+
+			this.channel = NettyChannelBuilder.forAddress(serverURI.getHost(), serverURI.getPort()).sslContext(sslContext).build();
+
+		}catch (Exception e){
+			e.printStackTrace();
+			throw new RuntimeException();
 		}
-
-		var trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		trustManagerFactory.init(keystore);
-
-		var scb = SslContextBuilder.forClient().trustManager(trustManagerFactory);
-		var sslContext = GrpcSslContexts.configure( scb ).build();
-
-		this.channel = NettyChannelBuilder.forAddress(serverURI.getHost(), serverURI.getPort()).sslContext(sslContext).build();
 	}
 
 	protected <T> Result<T> toJavaResult(Supplier<T> func) {

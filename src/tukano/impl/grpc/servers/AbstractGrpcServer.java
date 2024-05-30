@@ -1,6 +1,5 @@
 package tukano.impl.grpc.servers;
 
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -16,9 +15,6 @@ import tukano.impl.java.servers.AbstractServer;
 import utils.IP;
 
 import javax.net.ssl.KeyManagerFactory;
-
-import static tukano.impl.grpc.servers.GrpcUsersServer.PORT;
-
 
 public class AbstractGrpcServer extends AbstractServer {
 	private static final String SERVER_BASE_URI = "grpc://%s:%s%s";
@@ -42,7 +38,7 @@ public class AbstractGrpcServer extends AbstractServer {
 		keyManagerFactory.init(keystore, keyStorePassword.toCharArray());
 
 		var sslContext = GrpcSslContexts.configure(SslContextBuilder.forServer(keyManagerFactory)).build();
-		this.server = NettyServerBuilder.forPort(PORT).addService(stub).sslContext(sslContext).build();
+		this.server = NettyServerBuilder.forPort(port).addService(stub).sslContext(sslContext).build();
 	}
 
 	protected void start() throws IOException {

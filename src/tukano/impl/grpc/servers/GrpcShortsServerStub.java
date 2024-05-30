@@ -6,39 +6,27 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.grpc.generated_java.ShortsGrpc;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteShortArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteShortResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowersArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowersResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.GetFeedArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.GetFeedResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.GetShortArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.GetShortResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.GetShortsArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.GetShortsResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikeArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikeResult;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikesArgs;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikesResult;
+import tukano.impl.grpc.generated_java.ShortsProtoBuf.*;
 import tukano.impl.java.servers.JavaShorts;
 
+import java.util.logging.Logger;
+
 public class GrpcShortsServerStub extends AbstractGrpcStub implements ShortsGrpc.AsyncService {
+
+	private static Logger Log = Logger.getLogger(GrpcShortsServer.class.getName());
 
 	final ExtendedShorts impl = new JavaShorts();
 	
 	@Override
 	public final ServerServiceDefinition bindService() {
+		Log.info("%%%%%%%%%%%%%%%%%% deu bind do stub de shorts");
 		return ShortsGrpc.bindService(this);
 	}
 
 	@Override
 	public void createShort(CreateShortArgs request, StreamObserver<CreateShortResult> responseObserver) {
+		Log.info("##################### enrou no grpc create short");
+
 		var res = impl.createShort(request.getUserId() , request.getPassword());
 		if( ! res.isOK() )
 			responseObserver.onError( errorCodeToStatus(res.error()) );

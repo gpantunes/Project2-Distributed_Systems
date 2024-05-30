@@ -20,18 +20,18 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 
 	final UsersGrpc.UsersBlockingStub stub;
 
-	public GrpcUsersClient(String serverURI) throws Exception {
+	public GrpcUsersClient(String serverURI) {
 		super(serverURI);
-		this.stub = UsersGrpc.newBlockingStub( super.channel );	
+		this.stub = UsersGrpc.newBlockingStub( super.channel );
 	}
 
 	public Result<String> createUser(User user) {
 		return super.toJavaResult(() -> {
-			
+
 			var res = stub.createUser(CreateUserArgs.newBuilder()
-				.setUser(User_to_GrpcUser(user))
-				.build());
-			
+					.setUser(User_to_GrpcUser(user))
+					.build());
+
 			return res.getUserId();
 		});
 	}
@@ -39,21 +39,21 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	public Result<User> getUser(String userId, String pwd) {
 		return super.toJavaResult(()-> {
 			var res = stub.getUser(GetUserArgs.newBuilder()
-				.setUserId(userId)
-				.setPassword(pwd)
-				.build());
+					.setUserId(userId)
+					.setPassword(pwd)
+					.build());
 			return GrpcUser_to_User(res.getUser());
 		});
 	}
 
 	public Result<User> updateUser(String userId, String pwd, User user) {
-		return super.toJavaResult(() -> {	
+		return super.toJavaResult(() -> {
 			var res = stub.updateUser(UpdateUserArgs.newBuilder()
-				.setUserId(userId)
-				.setPassword(pwd)
-				.setUser(User_to_GrpcUser(user))
-				.build());
-		
+					.setUserId(userId)
+					.setPassword(pwd)
+					.setUser(User_to_GrpcUser(user))
+					.build());
+
 			return GrpcUser_to_User(res.getUser());
 		});
 	}
@@ -71,8 +71,8 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	public Result<List<User>> searchUsers(String pattern) {
 		return super.toJavaResult(() -> {
 			var res = stub.searchUsers(SearchUserArgs.newBuilder()
-				.setPattern(pattern)
-				.build());
+					.setPattern(pattern)
+					.build());
 
 			var list = new ArrayList<User>();
 			res.forEachRemaining( user -> list.add( GrpcUser_to_User(user)) );

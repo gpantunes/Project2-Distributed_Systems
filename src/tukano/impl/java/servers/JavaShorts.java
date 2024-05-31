@@ -154,7 +154,7 @@ public class JavaShorts implements ExtendedShorts {
 					var query = format("SELECT * FROM Likes l WHERE l.shortId = '%s'", shortId);
 					hibernate.createNativeQuery( query, Likes.class).list().forEach( hibernate::remove);
 
-					BlobsClients.get().delete(shrt.getBlobUrl(), Token.get() );
+					BlobsClients.get().delete(shrt.getBlobUrl(), Token.get());
 				});
 			});
 		});

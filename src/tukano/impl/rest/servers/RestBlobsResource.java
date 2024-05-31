@@ -14,13 +14,11 @@ public class RestBlobsResource extends RestResource implements RestExtendedBlobs
 	final ExtendedBlobs impl;
 	
 	public RestBlobsResource() {
-		Log.info("%%%%%%%%%%%%%%%%%% construiu impl com JavaBlobs");
 		this.impl = new JavaBlobs();
 	}
 	
 	@Override
 	public void upload(String blobId, byte[] bytes) {
-		Log.info("%%%%%%%%%%%%%%%% chamou upload no JavaBlobs");
 		super.resultOrThrow( impl.upload(blobId, bytes));
 	}
 

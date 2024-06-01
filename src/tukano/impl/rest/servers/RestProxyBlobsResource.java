@@ -16,13 +16,11 @@ public class RestProxyBlobsResource extends RestResource implements RestExtended
     final ExtendedBlobs impl;
 
     public RestProxyBlobsResource() {
-        Log.info("%%%%%%%%%%%%%%%%%% construiu impl com ProxyJavaBlobs");
         this.impl = new ProxyJavaBlobs();
     }
 
     @Override
     public void upload(String blobId, byte[] bytes) {
-        Log.info("%%%%%%%%%%%%%%%% chamou upload no ProxyJavaBlobs");
         super.resultOrThrow( impl.upload(blobId, bytes));
     }
 

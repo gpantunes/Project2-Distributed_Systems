@@ -70,42 +70,42 @@ public class JavaShorts implements ExtendedShorts {
 					return res;
 				}
 			});
-	
+
 	protected final LoadingCache<String, Result<Short>> shortsCache = CacheBuilder.newBuilder()
 			.expireAfterWrite(Duration.ofMillis(SHORTS_CACHE_EXPIRATION)).removalListener((e) -> {
 			}).build(new CacheLoader<>() {
 				@Override
 				public Result<Short> load(String shortId) throws Exception {
-					
+
 					var query = format("SELECT count(*) FROM Likes l WHERE l.shortId = '%s'", shortId);
 					var likes = DB.sql(query, Long.class);
 					return errorOrValue( getOne(shortId, Short.class), shrt -> shrt.copyWith( likes.get(0) ) );
 				}
 			});
-	
+
 	protected final LoadingCache<String, Map<String,Long>> blobCountCache = CacheBuilder.newBuilder()
 			.expireAfterWrite(Duration.ofMillis(BLOBS_USAGE_CACHE_EXPIRATION)).removalListener((e) -> {
 			}).build(new CacheLoader<>() {
 				@Override
 				public Map<String,Long> load(String __) throws Exception {
-					final var QUERY = "SELECT REGEXP_SUBSTRING(s.blobUrl, '^(\\w+:\\/\\/)?([^\\/]+)\\/([^\\/]+)') AS baseURI, count('*') AS usage From Short s GROUP BY baseURI";		
+					final var QUERY = "SELECT REGEXP_SUBSTRING(s.blobUrl, '^(\\w+:\\/\\/)?([^\\/]+)\\/([^\\/]+)') AS baseURI, count('*') AS usage From Short s GROUP BY baseURI";
 					var hits = DB.sql(QUERY, BlobServerCount.class);
-					
+
 					var candidates = hits.stream().collect( Collectors.toMap( BlobServerCount::baseURI, BlobServerCount::count));
 
 					for( var uri : BlobsClients.all() )
-						 candidates.putIfAbsent( uri.toString(), 0L);
+						candidates.putIfAbsent( uri.toString(), 0L);
 
 					return candidates;
 				}
 			});
-	
+
 	@Override
 	public Result<Short> createShort(String userId, String password) {
 		Log.info(() -> format("createShort : userId = %s, pwd = %s\n", userId, password));
 
 		return errorOrResult( okUser(userId, password), user -> {
-			
+
 			var shortId = format("%s-%d", userId, counter.incrementAndGet());
 
 			var blobUrl = generateBlobUrl(shortId);
@@ -142,21 +142,21 @@ public class JavaShorts implements ExtendedShorts {
 	@Override
 	public Result<Void> deleteShort(String shortId, String password) {
 		Log.info(() -> format("deleteShort : shortId = %s, pwd = %s\n", shortId, password));
-		
+
 		return errorOrResult( getShort(shortId), shrt -> {
-			
+
 			return errorOrResult( okUser( shrt.getOwnerId(), password), user -> {
 				return DB.transaction( hibernate -> {
 
 					shortsCache.invalidate( shortId );
 					hibernate.remove( shrt);
-					
+
 					var query = format("SELECT * FROM Likes l WHERE l.shortId = '%s'", shortId);
 					hibernate.createNativeQuery( query, Likes.class).list().forEach( hibernate::remove);
-					
-					BlobsClients.get().delete(shrt.getBlobUrl(), Token.get() );
+
+					BlobsClients.get().delete(shrt.getBlobUrl(), Token.get());
 				});
-			});	
+			});
 		});
 	}
 
@@ -174,15 +174,15 @@ public class JavaShorts implements ExtendedShorts {
 
 		return errorOrResult( okUser(userId1, password), user -> {
 			var f = new Following(userId1, userId2);
-			return errorOrVoid( okUser( userId2), isFollowing ? DB.insertOne( f ) : DB.deleteOne( f ));	
-		});			
+			return errorOrVoid( okUser( userId2), isFollowing ? DB.insertOne( f ) : DB.deleteOne( f ));
+		});
 	}
 
 	@Override
 	public Result<List<String>> followers(String userId, String password) {
 		Log.info(() -> format("followers : userId = %s, pwd = %s\n", userId, password));
 
-		var query = format("SELECT f.follower FROM Following f WHERE f.followee = '%s'", userId);		
+		var query = format("SELECT f.follower FROM Following f WHERE f.followee = '%s'", userId);
 		return errorOrValue( okUser(userId, password), DB.sql(query, String.class));
 	}
 
@@ -190,12 +190,12 @@ public class JavaShorts implements ExtendedShorts {
 	public Result<Void> like(String shortId, String userId, boolean isLiked, String password) {
 		Log.info(() -> format("like : shortId = %s, userId = %s, isLiked = %s, pwd = %s\n", shortId, userId, isLiked, password));
 
-		
+
 		return errorOrResult( getShort(shortId), shrt -> {
 			shortsCache.invalidate( shortId );
-			
+
 			var l = new Likes(userId, shortId, shrt.getOwnerId());
-			return errorOrVoid( okUser( userId, password), isLiked ? DB.insertOne( l ) : DB.deleteOne( l ));	
+			return errorOrVoid( okUser( userId, password), isLiked ? DB.insertOne( l ) : DB.deleteOne( l ));
 		});
 	}
 
@@ -204,9 +204,9 @@ public class JavaShorts implements ExtendedShorts {
 		Log.info(() -> format("likes : shortId = %s, pwd = %s\n", shortId, password));
 
 		return errorOrResult( getShort(shortId), shrt -> {
-			
-			var query = format("SELECT l.userId FROM Likes l WHERE l.shortId = '%s'", shortId);					
-			
+
+			var query = format("SELECT l.userId FROM Likes l WHERE l.shortId = '%s'", shortId);
+
 			return errorOrValue( okUser( shrt.getOwnerId(), password ), DB.sql(query, String.class));
 		});
 	}
@@ -227,7 +227,7 @@ public class JavaShorts implements ExtendedShorts {
 
 		return errorOrValue( okUser( userId, password), DB.sql( format(QUERY_FMT, userId, userId), String.class));
 	}
-		
+
 	protected Result<User> okUser( String userId, String pwd) {
 		try {
 			return usersCache.get( new Credentials(userId, pwd));
@@ -236,7 +236,7 @@ public class JavaShorts implements ExtendedShorts {
 			return Result.error(INTERNAL_ERROR);
 		}
 	}
-	
+
 	private Result<Void> okUser( String userId ) {
 		var res = okUser( userId, "");
 		if( res.error() == FORBIDDEN )
@@ -244,7 +244,7 @@ public class JavaShorts implements ExtendedShorts {
 		else
 			return error( res.error() );
 	}
-	
+
 	protected Result<Short> shortFromCache( String shortId ) {
 		try {
 			return shortsCache.get(shortId);
@@ -254,32 +254,32 @@ public class JavaShorts implements ExtendedShorts {
 		}
 	}
 
-	// Extended API 
-	
+	// Extended API
+
 	@Override
 	public Result<Void> deleteAllShorts(String userId, String password, String token) {
 		Log.info(() -> format("deleteAllShorts : userId = %s, password = %s, token = %s\n", userId, password, token));
 
 		if( ! Token.matches( token ) )
 			return error(FORBIDDEN);
-		
+
 		return DB.transaction( (hibernate) -> {
-			
+
 			usersCache.invalidate( new Credentials(userId, password) );
-			
+
 			//delete shorts
-			var query1 = format("SELECT * FROM Short s WHERE s.ownerId = '%s'", userId);		
+			var query1 = format("SELECT * FROM Short s WHERE s.ownerId = '%s'", userId);
 			hibernate.createNativeQuery(query1, Short.class).list().forEach( s -> {
 				shortsCache.invalidate( s.getShortId() );
 				hibernate.remove(s);
 			});
-			
+
 			//delete follows
-			var query2 = format("SELECT * FROM Following f WHERE f.follower = '%s' OR f.followee = '%s'", userId, userId);		
+			var query2 = format("SELECT * FROM Following f WHERE f.follower = '%s' OR f.followee = '%s'", userId, userId);
 			hibernate.createNativeQuery(query2, Following.class).list().forEach( hibernate::remove );
-			
+
 			//delete likes
-			var query3 = format("SELECT * FROM Likes l WHERE l.ownerId = '%s' OR l.userId = '%s'", userId, userId);		
+			var query3 = format("SELECT * FROM Likes l WHERE l.ownerId = '%s' OR l.userId = '%s'", userId, userId);
 			hibernate.createNativeQuery(query3, Likes.class).list().forEach( l -> {
 				shortsCache.invalidate( l.getShortId() );
 				hibernate.remove(l);
@@ -304,9 +304,9 @@ public class JavaShorts implements ExtendedShorts {
 
 		return uriList;
 	}
-	
+
 	record BlobServerCount(String baseURI, Long count) {};
-	
+
 	private long totalShortsInDatabase() {
 		var hits = DB.sql("SELECT count('*') FROM Short", Long.class);
 		return 1L + (hits.isEmpty() ? 0L : hits.get(0));
@@ -367,4 +367,3 @@ public class JavaShorts implements ExtendedShorts {
 	}
 
 }
-

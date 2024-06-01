@@ -14,10 +14,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -26,8 +23,10 @@ import com.github.scribejava.core.model.Response;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.auth.*;
-import tukano.impl.java.clients.Clients;
-import utils.IO;
+import tukano.impl.auth.CreateDirectory;
+import tukano.impl.auth.DeleteFile;
+import tukano.impl.auth.DownloadFile;
+import tukano.impl.auth.UploadFile;
 import utils.Token;
 
 public class ProxyJavaBlobs implements ExtendedBlobs {

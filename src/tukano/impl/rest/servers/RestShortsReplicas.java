@@ -14,7 +14,7 @@ import utils.Args;
 
 
 public class RestShortsReplicas extends AbstractRestServer {
-    public static final int PORT = 7189;
+    public static final int PORT = 8888;
     private static final String TOPIC = "X-SHORTS";
 
 

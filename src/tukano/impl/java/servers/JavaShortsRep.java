@@ -132,6 +132,7 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 		String userId2;
 		String shortId;
 		String password;
+		String token;
 		Long time;
 		boolean isFollowing;
 		boolean isLiked;
@@ -155,7 +156,19 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 				password = parts[3];
 				sync.setResult(vrs, followKafka(userId1, userId2, isFollowing, password));
 				break;
-
+			case "like":
+				shortId = parts[0];
+				userId1 = parts[1];
+				isLiked = Boolean.parseBoolean(parts[2]);
+				password = parts[3];
+				sync.setResult(vrs, likeKafka(shortId, userId1, isLiked, password));
+				break;
+			case "deleteAllShorts":
+				userId1 = parts[0];
+				password = parts[1];
+				token = parts[2];
+				sync.setResult(vrs, deleteAllShortsKafka(userId1, password, token));
+				break;
 		}
 
 		lastOffset = vrs;
@@ -226,7 +239,7 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 
 	@Override
 	public Result<Void> deleteShort(String shortId, String password) {
-		Log.info(() -> format("createShort : userId = %s, pwd = %s\n", shortId, password));
+		Log.info(() -> format("deleteShort : userId = %s, pwd = %s\n", shortId, password));
 
 		var VRS = sender.publish(TOPIC, "deleteShort", shortId + "," + password);
 		sync.waitForResult(VRS);
@@ -278,7 +291,7 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 
 	@Override
 	public Result<Void> follow(String userId1, String userId2, boolean isFollowing, String password) {
-		var VRS = sender.publish(TOPIC, "create_short", userId1 + "," + userId2 + "," + isFollowing + "," + password);
+		var VRS = sender.publish(TOPIC, "follow", userId1 + "," + userId2 + "," + isFollowing + "," + password);
 		sync.waitForResult(VRS);
 		return ok();
 	}
@@ -290,36 +303,80 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 			var f = new Following(userId1, userId2);
 			return errorOrVoid( okUser( userId2), isFollowing ? DB.insertOne( f ) : DB.deleteOne( f ));
 		});
+
+		//var f = new Following(userId1, userId1);
+
 	}
 
 	@Override
 	public Result<List<String>> followers(String userId, String password) {
-		// TODO Auto-generated method stub
-		return null;
+		Log.info(() -> format("followers : shortId = %s\n", userId));
+
+		if (userId == null)
+			return error(BAD_REQUEST);
+
+		var res = followersKafka(userId, password);
+
+		if(!res.isOK()){
+			Log.info(() -> format("likes : error = %s,\n", res.error()));
+		}
+
+		return res;
 	}
 
 	public Result<List<String>> followersKafka(String userId, String password) {
-		return null;
+		Log.info(() -> format("followers : userId = %s, pwd = %s\n", userId, password));
+
+		var query = format("SELECT f.follower FROM Following f WHERE f.followee = '%s'", userId);
+		return errorOrValue( okUser(userId, password), DB.sql(query, String.class));
 	}
 
 	@Override
 	public Result<Void> like(String shortId, String userId, boolean isLiked, String password) {
-		// TODO Auto-generated method stub
-		return null;
+		Log.info(() -> format("like : userId = %s, pwd = %s\n", shortId, password));
+
+		var VRS = sender.publish(TOPIC, "like", shortId + "," + userId + "," + isLiked + "," + password);
+		sync.waitForResult(VRS);
+		return ok();
 	}
 
 	public Result<Void> likeKafka(String shortId, String userId, boolean isLiked, String password) {
-		return null;
+		Log.info(() -> format("like : shortId = %s, userId = %s, isLiked = %s, pwd = %s\n", shortId, userId, isLiked, password));
+
+
+		return errorOrResult( getShort(shortId), shrt -> {
+			shortsCache.invalidate( shortId );
+
+			var l = new Likes(userId, shortId, shrt.getOwnerId());
+			return errorOrVoid( okUser( userId, password), isLiked ? DB.insertOne( l ) : DB.deleteOne( l ));
+		});
 	}
 
 	@Override
 	public Result<List<String>> likes(String shortId, String password) {
-		// TODO Auto-generated method stub
-		return null;
+		Log.info(() -> format("getShort : shortId = %s\n", shortId));
+
+		if (shortId == null)
+			return error(BAD_REQUEST);
+
+		var res = likesKafka(shortId, password);
+
+		if(!res.isOK()){
+			Log.info(() -> format("likes : error = %s,\n", res.error()));
+		}
+
+		return res;
 	}
 
-	public Result<List<String>> likesKafka(String shortid, String password) {
-		return null;
+	public Result<List<String>> likesKafka(String shortId, String password) {
+		Log.info(() -> format("likes : shortId = %s, pwd = %s\n", shortId, password));
+
+		return errorOrResult( getShort(shortId), shrt -> {
+
+			var query = format("SELECT l.userId FROM Likes l WHERE l.shortId = '%s'", shortId);
+
+			return errorOrValue( okUser( shrt.getOwnerId(), password ), DB.sql(query, String.class));
+		});
 	}
 
 	@Override
@@ -356,12 +413,41 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 
 	@Override
 	public Result<Void> deleteAllShorts(String userId, String password, String token) {
-		// TODO Auto-generated method stub
-		return null;
+		Log.info(() -> format("deleteAllShorts : userId = %s, pwd = %s\n", userId, password));
+
+		var VRS = sender.publish(TOPIC, "deleteAllShorts", userId + "," + password + "," + token);
+		sync.waitForResult(VRS);
+		return ok();
 	}
 
 	public Result<Void> deleteAllShortsKafka(String userId, String password, String token) {
-		return null;
+		Log.info(() -> format("deleteAllShorts : userId = %s, password = %s, token = %s\n", userId, password, token));
+
+		if( ! Token.matches( token ) )
+			return error(FORBIDDEN);
+
+		return DB.transaction( (hibernate) -> {
+
+			usersCache.invalidate( new JavaShorts.Credentials(userId, password) );
+
+			//delete shorts
+			var query1 = format("SELECT * FROM Short s WHERE s.ownerId = '%s'", userId);
+			hibernate.createNativeQuery(query1, Short.class).list().forEach( s -> {
+				shortsCache.invalidate( s.getShortId() );
+				hibernate.remove(s);
+			});
+
+			//delete follows
+			var query2 = format("SELECT * FROM Following f WHERE f.follower = '%s' OR f.followee = '%s'", userId, userId);
+			hibernate.createNativeQuery(query2, Following.class).list().forEach( hibernate::remove );
+
+			//delete likes
+			var query3 = format("SELECT * FROM Likes l WHERE l.ownerId = '%s' OR l.userId = '%s'", userId, userId);
+			hibernate.createNativeQuery(query3, Likes.class).list().forEach( l -> {
+				shortsCache.invalidate( l.getShortId() );
+				hibernate.remove(l);
+			});
+		});
 	}
 
 

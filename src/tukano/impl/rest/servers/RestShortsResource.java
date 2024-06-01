@@ -3,11 +3,14 @@ package tukano.impl.rest.servers;
 import java.util.List;
 
 import jakarta.inject.Singleton;
+import jakarta.ws.rs.ext.Provider;
 import tukano.api.Short;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.api.rest.RestExtendedShorts;
 import tukano.impl.java.servers.JavaShorts;
+import tukano.impl.java.servers.JavaShortsRep;
 
+@Provider
 @Singleton
 public class RestShortsResource extends RestResource implements RestExtendedShorts {
 
@@ -15,8 +18,11 @@ public class RestShortsResource extends RestResource implements RestExtendedShor
 	public RestShortsResource() {
 		this.impl = new JavaShorts();
 	}
-	
-	
+
+	public RestShortsResource(JavaShortsRep rep) {
+		this.impl = rep;
+	}
+
 	@Override
 	public Short createShort(String userId, String password) {
 		return super.resultOrThrow( impl.createShort(userId, password));
@@ -64,5 +70,5 @@ public class RestShortsResource extends RestResource implements RestExtendedShor
 	@Override
 	public void deleteAllShorts(String userId, String password, String token) {
 		super.resultOrThrow( impl.deleteAllShorts(userId, password, token));
-	}	
+	}
 }

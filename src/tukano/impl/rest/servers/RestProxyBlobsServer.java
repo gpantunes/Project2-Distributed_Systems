@@ -16,7 +16,7 @@ import utils.Args;
 public class RestProxyBlobsServer extends AbstractRestServer {
     public static final int PORT = 8765;
 
-    private static Logger Log = Logger.getLogger(RestProxyBlobsServer.class.getName());
+    private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
     RestProxyBlobsServer(int port) {
         super( Log, Blobs.NAME, port);
@@ -37,7 +37,7 @@ public class RestProxyBlobsServer extends AbstractRestServer {
 
         stateless = Boolean.parseBoolean(args[0]);
 
-        if(stateless == false){
+        if (stateless == false) {
             String[] dropBoxArgs = new String[1];
             dropBoxArgs[0] = ProxyJavaBlobs.DROPBOX_BLOBS_DIR;
 

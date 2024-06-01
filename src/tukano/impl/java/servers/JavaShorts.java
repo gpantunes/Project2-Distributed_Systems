@@ -287,24 +287,6 @@ public class JavaShorts implements ExtendedShorts {
 		});
 	}
 
-
-	private List<String> getAllBlobServerURI() {
-		List<String> uriList = new ArrayList<>();
-		try {
-			var servers = blobCountCache.get(BLOB_COUNT);
-
-			for(var server : servers.entrySet()){
-				var uri = server.getKey();
-				uriList.add(uri);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return uriList;
-	}
-
 	record BlobServerCount(String baseURI, Long count) {};
 
 	private long totalShortsInDatabase() {

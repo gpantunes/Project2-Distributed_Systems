@@ -8,6 +8,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import tukano.api.java.Blobs;
 import tukano.impl.auth.CreateDirectory;
 import tukano.impl.auth.DeleteFile;
+import tukano.impl.java.servers.JavaBlobs;
 import tukano.impl.java.servers.ProxyJavaBlobs;
 import tukano.impl.rest.servers.utils.CustomLoggingFilter;
 import tukano.impl.rest.servers.utils.GenericExceptionMapper;

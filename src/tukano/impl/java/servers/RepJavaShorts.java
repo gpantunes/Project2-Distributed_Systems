@@ -10,7 +10,6 @@ import static utils.DB.getOne;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -38,9 +37,7 @@ import tukano.impl.discovery.Discovery;
 import utils.DB;
 import utils.Token;
 
-public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
-	private static final String BLOB_COUNT = "*";
-
+public class RepJavaShorts implements ExtendedShorts, RecordProcessor {
 	static final String KAFKA_BROKERS = "kafka:9092";
 
 	static final String TOPIC = "X-SHORTS";
@@ -62,7 +59,7 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 	private static final long SHORTS_CACHE_EXPIRATION = 3000;
 	private static final long BLOBS_USAGE_CACHE_EXPIRATION = 10000;
 
-	public JavaShortsRep() {
+	public RepJavaShorts() {
 		this.sync = new SyncPoint<>();
 		this.sender = KafkaPublisher.createPublisher(KAFKA_BROKERS);
 		this.receiver = KafkaSubscriber.createSubscriber(KAFKA_BROKERS, List.of(TOPIC), FROM_BEGINNING);
@@ -303,9 +300,6 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 			var f = new Following(userId1, userId2);
 			return errorOrVoid( okUser( userId2), isFollowing ? DB.insertOne( f ) : DB.deleteOne( f ));
 		});
-
-		//var f = new Following(userId1, userId1);
-
 	}
 
 	@Override
@@ -472,15 +466,6 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 		}
 	}
 
-	/*protected Result<User> okUser( String userId, String pwd) {
-		try {
-			return usersCache.get( new JavaShorts.Credentials(userId, pwd));
-		} catch (Exception x) {
-			x.printStackTrace();
-			return Result.error(INTERNAL_ERROR);
-		}
-	}*/
-
 	private Result<Void> okUser( String userId ) {
 		var res = okUser( userId, "");
 		if( res.error() == FORBIDDEN )
@@ -489,22 +474,10 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 			return error( res.error() );
 	}
 
-	private String getLiveBlobsUrl(String shortId) {
-		URI[] knownUris = Discovery.getInstance().knownUrisOf(Blobs.NAME, 0);
-
-		return Arrays.stream(knownUris).map(uri -> String.format("%s/%s/%s", uri.toString(), Blobs.NAME, shortId))
-				.collect(Collectors.joining("|", "", ""));
-
-	}
-
-	static record BlobServerCount(String baseURI, Long count) {
-	};
-
 	private long totalShortsInDatabase() {
 		var hits = DB.sql("SELECT count('*') FROM Short", Long.class);
 		return 1L + (hits.isEmpty() ? 0L : hits.get(0));
 	}
-
 
 	private String generateBlobUrl(String shortId) {
 		StringBuilder concat = new StringBuilder();

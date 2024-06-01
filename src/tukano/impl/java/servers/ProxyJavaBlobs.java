@@ -158,11 +158,7 @@ public class ProxyJavaBlobs implements ExtendedBlobs {
 
         return ok();
     }
-
-    private boolean validBlobId(String blobId) {
-        return ShortsClients.get().getShort(blobId).isOK();
-    }
-
+    
     private Result<Void> createDir(String blobId) {
         var parts = blobId.split("-");
         if (parts.length != 2)

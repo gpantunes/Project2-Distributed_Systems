@@ -8,7 +8,7 @@ import tukano.api.Short;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.api.rest.RestExtendedShorts;
 import tukano.impl.java.servers.JavaShorts;
-import tukano.impl.java.servers.JavaShortsRep;
+import tukano.impl.java.servers.RepJavaShorts;
 import utils.Sleep;
 
 @Provider
@@ -20,7 +20,7 @@ public class RestShortsResource extends RestResource implements RestExtendedShor
 		this.impl = new JavaShorts();
 	}
 
-	public RestShortsResource(JavaShortsRep rep) {
+	public RestShortsResource(RepJavaShorts rep) {
 		this.impl = rep;
 	}
 
@@ -32,7 +32,6 @@ public class RestShortsResource extends RestResource implements RestExtendedShor
 	@Override
 	public void deleteShort(String shortId, String password) {
 		super.resultOrThrow( impl.deleteShort(shortId, password));
-		Sleep.ms(2000);
 	}
 
 	@Override

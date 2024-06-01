@@ -21,7 +21,7 @@ public class ClientFactory<T> {
 	private final String serviceName;
 	private final Function<String, T> restClientFunc;
 	private final Function<String, T> grpcClientFunc;
-	
+
 	private LoadingCache<URI, T> clients = CacheBuilder.newBuilder()
 			.build(new CacheLoader<>() {
 				@Override
@@ -29,13 +29,13 @@ public class ClientFactory<T> {
 					return newClient( uri.toString() );
 				}
 			});
-	
+
 	ClientFactory( String serviceName, Function<String, T> restClientFunc, Function<String, T> grpcClientFunc) {
 		this.restClientFunc = restClientFunc;
 		this.grpcClientFunc = grpcClientFunc;
 		this.serviceName = serviceName;
 	}
-	
+
 	private T newClient( String serverURI ) {
 		if (serverURI.endsWith(REST))
 			return restClientFunc.apply( serverURI );
@@ -44,11 +44,11 @@ public class ClientFactory<T> {
 		else
 			throw new RuntimeException("Unknown service type..." + serverURI);
 	}
-	
+
 	public T get() {
 		return get(Discovery.getInstance().knownUrisOf(serviceName, 1)[0]);
 	}
-	
+
 	public T get(URI uri) {
 		try {
 			return clients.get(uri);
@@ -56,8 +56,8 @@ public class ClientFactory<T> {
 			x.printStackTrace();
 			throw new RuntimeException( Result.ErrorCode.INTERNAL_ERROR.toString());
 		}
-	}	
-			
+	}
+
 	public List<T> all() {
 		return Arrays.asList( Discovery.getInstance().knownUrisOf(serviceName, 1) ).stream().map( this::get ).toList();
 	}

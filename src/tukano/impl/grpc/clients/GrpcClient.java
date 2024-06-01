@@ -49,9 +49,6 @@ public class GrpcClient {
 			e.printStackTrace();
 			throw new RuntimeException();
 		}
-
-
-
 	}
 
 	protected <T> Result<T> toJavaResult(Supplier<T> func) {

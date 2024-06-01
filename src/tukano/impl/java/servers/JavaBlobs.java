@@ -12,6 +12,7 @@ import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -21,6 +22,8 @@ import java.util.logging.Logger;
 
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
+import tukano.impl.discovery.Discovery;
+import tukano.impl.java.clients.ClientFactory;
 import tukano.impl.java.clients.Clients;
 import utils.Hash;
 import utils.IO;
@@ -134,6 +137,16 @@ public class JavaBlobs implements ExtendedBlobs {
 	}
 	
 	private boolean validBlobId(String blobId) {
+		/*var servers = Discovery.getInstance().knownUrisOf("shots", 1);
+
+		for(URI shortServer : servers){
+			Log.info("###################### fez um loop no valid blobs");
+			if(Clients.ShortsClients.get(shortServer).getShort(blobId).isOK()){
+				return true;
+			}
+		}
+
+		return false;*/
 		return Clients.ShortsClients.get().getShort(blobId).isOK();
 	}
 

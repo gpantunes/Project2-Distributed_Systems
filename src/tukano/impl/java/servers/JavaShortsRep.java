@@ -229,9 +229,9 @@ public class JavaShortsRep implements ExtendedShorts, RecordProcessor {
 		var blobUrl = generateBlobUrl(shortId);
 		vid.setBlobUrl(blobUrl);
 
-		/*Result update = verifyConsistency(vid.getBlobUrl(), blobUrl);
+		Result update = verifyConsistency(vid.getBlobUrl(), blobUrl);
 		if(!update.isOK())
-			return error(INTERNAL_ERROR);*/
+			return error(INTERNAL_ERROR);
 
 		DB.updateOne(vid);
 		return ok(vid);

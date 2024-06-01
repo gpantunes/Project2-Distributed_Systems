@@ -12,7 +12,6 @@ import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -20,15 +19,10 @@ import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import com.github.scribejava.core.model.Response;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
-import tukano.impl.auth.CreateDirectory;
-import tukano.impl.auth.DownloadFile;
-import tukano.impl.auth.UploadFile;
 import tukano.impl.java.clients.Clients;
 import utils.Hash;
-import utils.Hex;
 import utils.IO;
 import utils.Token;
 
@@ -71,9 +65,10 @@ public class JavaBlobs implements ExtendedBlobs {
 		if (file == null)
 			return error(BAD_REQUEST);
 
-		if (file.exists())
+		if (file.exists()) {
+			Log.info("################## vai retornar ok com o file");
 			return ok(IO.read(file));
-		else
+		}else
 			return error(NOT_FOUND);
 	}
 

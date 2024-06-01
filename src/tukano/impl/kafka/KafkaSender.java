@@ -1,11 +1,11 @@
-package tukano.impl.kafka.examples.ex1;
+package tukano.impl.kafka;
 
 import tukano.impl.kafka.lib.KafkaPublisher;
 import tukano.impl.kafka.lib.KafkaUtils;
 
 public class KafkaSender {
 	
-	static final String TOPIC = "shorts";
+	static final String TOPIC = "topic";
 	//static final String KAFKA_BROKERS = "localhost:9092"; // For testing locally
 	static final String KAFKA_BROKERS = "kafka:9092"; // When running in docker container...
 	

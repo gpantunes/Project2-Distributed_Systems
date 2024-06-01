@@ -1,7 +1,6 @@
 package tukano.impl.rest.servers;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 import org.glassfish.jersey.server.ResourceConfig;
@@ -18,7 +17,7 @@ import utils.Args;
 public class RestProxyBlobsServer extends AbstractRestServer {
     public static final int PORT = 8765;
 
-    private static Logger Log = Logger.getLogger(RestProxyBlobsServer.class.getName());
+    private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
     RestProxyBlobsServer(int port) {
         super( Log, Blobs.NAME, port);
@@ -37,12 +36,9 @@ public class RestProxyBlobsServer extends AbstractRestServer {
         Args.use(args);
         new RestProxyBlobsServer(Args.valueOf("-port", PORT)).start();
 
-        Logger Log = Logger.getLogger(JavaBlobs.class.getName());
-
         stateless = Boolean.parseBoolean(args[0]);
-        Log.info("############### stateless " + stateless);
 
-        if(stateless == false){
+        if (stateless == false) {
             String[] dropBoxArgs = new String[1];
             dropBoxArgs[0] = ProxyJavaBlobs.DROPBOX_BLOBS_DIR;
 
@@ -57,7 +53,7 @@ public class RestProxyBlobsServer extends AbstractRestServer {
             } catch (Exception e) {
                 //throw new RuntimeException(e);
             }
-        }
 
+        }
     }
 }

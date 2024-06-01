@@ -1,17 +1,18 @@
-package tukano.impl.kafka.examples.ex2;
+package tukano.impl.kafka;
 
-import lab10.kafka.lib.KafkaPublisher;
-import lab10.kafka.lib.KafkaSubscriber;
-import lab10.kafka.lib.KafkaUtils;
-import lab10.kafka.lib.RecordProcessor;
-import lab10.kafka.sync.SyncPoint;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import tukano.impl.kafka.lib.KafkaPublisher;
+import tukano.impl.kafka.lib.KafkaSubscriber;
+import tukano.impl.kafka.lib.KafkaUtils;
+import tukano.impl.kafka.lib.RecordProcessor;
+import tukano.impl.kafka.sync.SyncPoint;
 
 import java.util.List;
 import java.util.UUID;
 /*
  * 
- * This example shows how to use Kafka to order messages representating
+ * This example shows how to use Kafka to order messages representing
  * operations and executing them in total order in different threads. 
  * 
  * For a real application, the operation would need to encode to actual operation and its arguments.

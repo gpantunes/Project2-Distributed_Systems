@@ -1,4 +1,4 @@
-package tukano.impl.kafka.examples.ex1;
+package tukano.impl.kafka;
 
 import tukano.impl.kafka.lib.KafkaSubscriber;
 import tukano.impl.kafka.lib.KafkaUtils;
